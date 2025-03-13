@@ -1,18 +1,22 @@
 # Anvil API Examples
 
-The following examples uses
+This repository provides examples for using the Anvil API.
+Below is an overview of the examples included:
 
-- Deno
-- Bash
+- **Programming Languages**: Deno, Bash
+- **Note**:
+  - Users need to create their own Addresses, Wallets, and Policies.
+  - The provided API Key in most examples is limited to only **preprod** environments and has a low request rate.
 
-**Note**
+---
 
-- Addresses, Wallets, Policies must be created by the user.
-- The provided API Key in most examples is limited to only **preprod** and have a very low rate (request per seconds)
+## Examples
 
-| Example                                                                                                                                        | Link                       |
-| ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| Simple Minting platform using multi-signature with redis and a function that generates random NFT. Built using VanillaJS (Deno/Hono/HTMX/Weld) | ./minting-platform-cip25   |
-| "Full Code" examples For anvil api doc website                                                                                                 | ./documentation-references |
-| Airdrop example using anvil API                                                                                                                | ./airdrop                  |
-| For Util functions, they are gonna be transform as Anvil API Endpoints as well                                                                 | ./utils                    |
+| Description                                                                                           | Location                   |
+| ----------------------------------------------------------------------------------------------------- | -------------------------- |
+| Simple Minting platform using multi-signature with Redis and a function that generates random NFT. Built using VanillaJS (Deno/Hono/HTMX/Weld) | [./minting-platform-cip25](./minting-platform-cip25)   |
+| "Full Code" examples for the Anvil API documentation website                                          | [./documentation-references](./documentation-references) |
+| Airdrop example using the Anvil API                                                                  | [./airdrop](./airdrop)     |
+| Util functions that are to be transformed into Anvil API Endpoints                                   | [./utils](./utils)         |
+
+---
