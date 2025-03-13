@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "hono": "jsr:@hono/hono@^4.7.4",
+    "@emurgo/cardano-serialization-lib-nodejs": "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1",
+    "redis": "npm:redis@4.7.0"
+  },
+  "tasks": {
+    "serve": "deno run --allow-read --allow-net --watch no-redis.ts",
+    "serve:redis": "deno run --allow-read --allow-net --watch with-redis.ts"
+  }
+}

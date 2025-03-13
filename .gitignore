@@ -1,0 +1,7 @@
+policy.json
+treasury.json
+customer.json
+policy-*.json
+meta-manager-*.json
+
+airdrop/wallets/customer_*.json
