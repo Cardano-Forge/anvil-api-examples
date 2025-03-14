@@ -1,0 +1,19 @@
+import { API_URL, HEADERS } from "../utils/constant.ts";
+
+const SIGNATURE =
+  "a10081825820249bc03c22e4d90d0bc356892ae2b3182e5b56af4d90f9cc591bd5b8e496568158407910698a286d03efb5e47839a8dd93a00beb6844e641829b7f122bb54edad0942b6a4c983519a35bc87e8b629e45f19d436b373533864ce3769f09e694b1a200";
+const TRANSACTION =
+  "84a400d90102818258203aeb86b1388189192281b6b2c114235cec91b4a1fc3aeb4d73b1721855b93f3c00018282583900debb399ffcdeca27f269b19e377f0ae84d40583d58195616d9e3a5a275bc01dcc1082fbe7084941c26fefe470aefaf832a7a5a42360d43b51a0098968082583900c8d25b5c76b19bda9c88a0120a2dbcdc2ddd3f82921aa98ca35854285139e81456c1b4e2f0af22c1e94ff22ea648588b03a7c7914b6eb2561b00000002536f81cb021a0003cbb5031a04ec3248a0f5f6";
+
+const BODY = {
+  transaction: TRANSACTION,
+  signatures: [SIGNATURE],
+};
+
+const response = await fetch(`${API_URL}/transactions/submit`, {
+  method: "POST",
+  headers: HEADERS,
+  body: JSON.stringify(BODY),
+});
+
+console.log(await response.json());
