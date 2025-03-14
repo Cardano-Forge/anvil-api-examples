@@ -189,7 +189,7 @@ app.post("/mint", async (c: Context) => {
     quantity: 1,
   };
 
-  database.assetsGenerated.set(metadata.name, metadata);
+  // database.assetsGenerated.set(metadata.name, metadata);
 
   const transaction = await createTransaction(
     changeAddress,
@@ -206,7 +206,7 @@ app.post("/mint", async (c: Context) => {
   database.pendingTx.set(transaction.hash, transaction);
 
   console.log(database.pendingTx);
-  return c.json({ tx: transaction.stripped, hash: transaction.hash }); // rewquired customer signature
+  return c.json({ tx: transaction.stripped, hash: transaction.hash }); // required customer signature
 });
 
 app.post("/submit", async (c: Context) => {

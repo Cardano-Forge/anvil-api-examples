@@ -23,7 +23,7 @@ const expirationDate = "2026-01-01";
 const counter = new Date().getTime();
 
 const slot = dateToSlot(new Date(expirationDate));
-const keyhash = getKeyhash(policyWallet.skey);
+const keyhash = getKeyhash(policyWallet.base_address_preprod);
 
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");
@@ -97,7 +97,11 @@ const data = {
       address: metaManagerWallet.enterprise_address_preprod,
       assets: [
         {
-          assetName: { name: `anvilapicip68_${counter}`, label: 100 },
+          assetName: {
+            name: `anvilapicip68_${counter}`,
+            format: "utf8",
+            label: 100,
+          },
           policyId: getPolicyId(policyAnvilApi.mint_script),
           quantity: 1,
         },
@@ -107,7 +111,11 @@ const data = {
       address: customerWallet.enterprise_address_preprod,
       assets: [
         {
-          assetName: { name: `anvilapicip68_${counter}`, label: 222 },
+          assetName: {
+            name: `anvilapicip68_${counter}`,
+            format: "utf8",
+            label: 222,
+          },
           policyId: getPolicyId(policyAnvilApi.mint_script),
           quantity: 1,
         },
