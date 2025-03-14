@@ -12,6 +12,7 @@ export default function ClientWeldProvider({ children }: ClientWeldProviderProps
         updateOnWindowFocus: true,
         updateInterval: 30000, // Update wallet extensions every 30 seconds
       }}
+      customWallets={{ blacklist: ["nufiSnap"] }}
     >
       {children}
     </WeldProvider>

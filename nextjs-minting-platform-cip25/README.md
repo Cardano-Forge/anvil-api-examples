@@ -30,7 +30,8 @@ ANVIL_API_KEY=your_anvil_api_key
 POLICY_KEY_HASH=your_policy_key_hash
 POLICY_SIGN_KEY=your_policy_private_key
 REDIS_URL=your_redis_connection_string
-TREASURY_BASE_ADDRESS_PREPROD=addr_test...
+TREASURY_BASE_ADDRESS=addr_test...
+POLICY_EXPIRATION_DATE=your_policy_expiration_date ex: 2030-01-01
 ```
 
 ### Installation

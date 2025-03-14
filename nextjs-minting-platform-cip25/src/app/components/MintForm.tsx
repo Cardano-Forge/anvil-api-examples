@@ -72,7 +72,7 @@ export default function MintForm() {
         throw new Error('Please connect your wallet first');
       }
       
-      // Step 1: Create the transaction using wallet change address and utxos
+      // Step 1: Create the transaction
       const mintResponse = await fetch('/api/mint', {
         method: 'POST',
         headers: {
@@ -88,7 +88,7 @@ export default function MintForm() {
       }
       
       // Step 2: Sign the transaction using wallet hook
-      const signedTransaction = await wallet.handler.signTx(mintData.transaction.complete, true);
+      const signedTransaction = await wallet.handler.signTx(mintData.strippedTransaction, true);
       if (!signedTransaction) {
         throw new Error('Failed to sign transaction');
       }
@@ -101,7 +101,8 @@ export default function MintForm() {
         },
         body: JSON.stringify({
           signedTx: signedTransaction,
-          transaction: mintData.transaction,
+          hash: mintData.hash,
+          strippedTransaction: mintData.strippedTransaction,
         }),
       });
       

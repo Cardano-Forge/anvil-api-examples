@@ -1,7 +1,31 @@
-const ANVIL_API_URL = process.env.ANVIL_API_URL;
-const ANVIL_API_KEY = process.env.ANVIL_API_KEY;
+'use server'
 
 import { FixedTransaction, PrivateKey } from "@emurgo/cardano-serialization-lib-asmjs";
+import { randomBytes } from 'crypto';
+import { getTransaction, removeTransaction, storeTransaction } from "./redis";
+const { ANVIL_API_URL, ANVIL_API_KEY } = process.env;
+
+// Define interfaces for the asset types
+interface AssetAttribute {
+  trait_type: string;
+  value: string | number | boolean;
+}
+
+interface AssetMetadata {
+  name: string;
+  image: string | string[];
+  mediaType: string;
+  description: string;
+  attributes?: AssetAttribute[];
+}
+
+interface Asset {
+  version: string;
+  assetName: string;
+  metadata: AssetMetadata;
+  policyId: string;
+  quantity: number;
+}
 
 // Ensure headers are set properly for all API calls
 const getHeaders = () => ({
@@ -10,12 +34,45 @@ const getHeaders = () => ({
 });
 
 /**
+ * Generate an NFT asset with metadata
+ * @param policyId The policy ID for the asset
+ * @returns Asset object configured according to CIP-25 standard
+ */
+export async function generateAsset(policyId: string): Promise<Asset> {
+  // Generate random attributes
+  const randomAttributes: AssetAttribute[] = [
+    { trait_type: 'part1', value: randomBytes(8).toString('hex') },
+    { trait_type: 'part2', value: randomBytes(8).toString('hex') },
+    { trait_type: 'part3', value: randomBytes(8).toString('hex') },
+  ];
+
+  // Generate a timestamp-based name
+  const assetName = `0x${new Date().getTime()}`;
+  
+  return {
+    version: 'cip25',
+    assetName,
+    metadata: {
+      name: assetName,
+      image: [
+        'https://ada-anvil.s3.ca-central-1.amazonaws.com/',
+        'logo_pres_V2_3.png',
+      ],
+      mediaType: 'image/png',
+      description: 'Minting Platform Example using Anvil API',
+      attributes: randomAttributes,
+    },
+    policyId,
+    quantity: 1,
+  };
+}
+
+/**
  * Create a transaction using the Anvil API
  */
 export async function createTransaction(
   changeAddress: string,
   utxos: string | string[],
-  asset: { assetName: string, policyId: string, quantity: number },
   keyHash: string,
   slot: number,
   policyId: string,
@@ -24,12 +81,13 @@ export async function createTransaction(
     throw new Error('Anvil API URL or key not found in environment variables');
   }
 
+  const asset = await generateAsset(policyId);
   const data = {
     changeAddress,
     mint: [asset],
     outputs: [
       {
-        address: process.env.TREASURY_BASE_ADDRESS_PREPROD,
+        address: process.env.TREASURY_BASE_ADDRESS,
         lovelace: 1_000_000,
       },
       {
@@ -77,7 +135,10 @@ export async function createTransaction(
       throw new Error(`API error: ${response.status} - ${JSON.stringify(errorData)}`);
     }
 
-    return await response.json();
+    const transaction = await response.json();
+    await storeTransaction(transaction.hash, transaction);
+
+    return transaction;
   } catch (error) {
     console.error('Error creating transaction:', error);
     throw error;
@@ -87,15 +148,22 @@ export async function createTransaction(
 /**
  * Submit a signed transaction to the blockchain
  */
-export async function submitTransaction(signedTx: string, completeTransaction: string) {
+export async function submitTransaction(signedTx: string, hash: string) {
   if (!ANVIL_API_URL || !ANVIL_API_KEY) {
     throw new Error('Anvil API URL or key not found in environment variables');
+  }
+
+  // Check if transaction exists in cache
+  const storedTx = await getTransaction(hash);
+  if (!storedTx) {
+    throw new Error('Transaction not found or expired when submitting');
   }
   
   try {
     // Sign transaction with policy key
+    const transaction = await getTransaction(hash);
     const transactionToSubmit = FixedTransaction.from_bytes(
-      Buffer.from(completeTransaction, "hex"),
+      Buffer.from(transaction.complete, "hex"),
     );
 
     // Add policy key signature - you need to load this from environment variables or a secure store
@@ -122,8 +190,10 @@ export async function submitTransaction(signedTx: string, completeTransaction: s
       throw new Error(`API error: ${response.status} - ${JSON.stringify(errorData)}`);
     }
 
-    return await response.json();
+    // Remove transaction from cache after successful submission
+    await removeTransaction(hash);
 
+    return await response.json();
   } catch (error) {
     console.error('Error submitting transaction:', error);
     throw error;
