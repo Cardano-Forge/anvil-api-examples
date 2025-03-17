@@ -50,6 +50,23 @@ npm run dev
 yarn dev
 ```
 
+### Starting Redis
+
+You can start Redis using one of the following methods:
+
+```bash
+# Using Docker
+docker run -it --rm --name redis -p 6379:6379 redis
+
+# Using Podman
+podman run -d --name redis -p 6379:6379 redis
+
+# Using the Redis service (Linux)
+sudo service redis-server start
+```
+
+> **Note**: Redis is used in this example, but you can replace it with any database of your choice. The application is designed to be flexible with different data storage solutions.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
 ## How It Works

@@ -1,7 +1,7 @@
 'use server'
 
 import { FixedTransaction, PrivateKey } from "@emurgo/cardano-serialization-lib-asmjs";
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import { getTransaction, removeTransaction, storeTransaction } from "./redis";
 const { ANVIL_API_URL, ANVIL_API_KEY } = process.env;
 
@@ -21,17 +21,23 @@ interface AssetMetadata {
 
 interface Asset {
   version: string;
-  assetName: string;
+  assetName: { name: string, format: string };
   metadata: AssetMetadata;
   policyId: string;
   quantity: number;
 }
 
 // Ensure headers are set properly for all API calls
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  'X-Api-Key': ANVIL_API_KEY || '',
-});
+const getHeaders = () => {
+  if (!ANVIL_API_KEY) {
+    throw new Error('Anvil API key not found in environment variables');
+  }
+  
+  return {
+    'Content-Type': 'application/json',
+    'X-Api-Key': ANVIL_API_KEY,
+  };
+};
 
 /**
  * Generate an NFT asset with metadata
@@ -51,7 +57,7 @@ export async function generateAsset(policyId: string): Promise<Asset> {
   
   return {
     version: 'cip25',
-    assetName,
+    assetName: { name: assetName, format: "utf8" },
     metadata: {
       name: assetName,
       image: [
