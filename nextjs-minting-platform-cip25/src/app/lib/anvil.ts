@@ -1,6 +1,6 @@
 'use server'
 
-import { FixedTransaction, PrivateKey } from "@emurgo/cardano-serialization-lib-asmjs";
+import { FixedTransaction, PrivateKey } from "@emurgo/cardano-serialization-lib-asmjs-gc";
 import { randomBytes } from 'node:crypto';
 import { getTransaction, removeTransaction, storeTransaction } from "./redis";
 const { ANVIL_API_URL, ANVIL_API_KEY } = process.env;
@@ -160,14 +160,13 @@ export async function submitTransaction(signedTx: string, hash: string) {
   }
 
   // Check if transaction exists in cache
-  const storedTx = await getTransaction(hash);
-  if (!storedTx) {
+  const transaction = await getTransaction(hash);
+  if (!transaction) {
     throw new Error('Transaction not found or expired when submitting');
   }
   
   try {
     // Sign transaction with policy key
-    const transaction = await getTransaction(hash);
     const transactionToSubmit = FixedTransaction.from_bytes(
       Buffer.from(transaction.complete, "hex"),
     );

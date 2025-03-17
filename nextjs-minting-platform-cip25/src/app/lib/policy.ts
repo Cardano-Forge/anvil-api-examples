@@ -7,7 +7,7 @@ import {
   ScriptAll,
   ScriptPubkey,
   TimelockExpiry,
-} from "@emurgo/cardano-serialization-lib-asmjs";
+} from "@emurgo/cardano-serialization-lib-asmjs-gc";
 
 const { POLICY_KEY_HASH, POLICY_EXPIRATION_DATE } = process.env;
 
@@ -15,7 +15,12 @@ const { POLICY_KEY_HASH, POLICY_EXPIRATION_DATE } = process.env;
  * Convert a date to a Cardano slot number
  */
 export async function dateToSlot(date: Date): Promise<number> {
-  return Math.floor(date.getTime() / 1000) - 1596491091 + 4924800;
+  // Current slot number (1655683200) is for PreProd network. Update your value accordingly.
+  // Mainnet: 1591566291
+  // Preview: 1666656182
+  // Preprod: 1655683200
+  const currentSlot = 1655683200 + 4924800;
+  return Math.floor(date.getTime() / 1000) - currentSlot;
 }
 
 /**

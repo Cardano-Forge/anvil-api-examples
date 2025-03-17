@@ -1,20 +1,26 @@
 'use client';
-import { WeldProvider } from '@ada-anvil/weld/react';
 
-interface ClientWeldProviderProps {
+import {
+  WeldProvider as DefaultWeldProvider,
+  type WeldProviderProps,
+} from "@ada-anvil/weld/react";
+
+export function ClientWeldProvider({
+  children,
+  lastConnectedWallet,
+}: {
   children: React.ReactNode;
-}
-
-export default function ClientWeldProvider({ children }: ClientWeldProviderProps) {
+  lastConnectedWallet?: NonNullable<
+    WeldProviderProps["wallet"]
+  >["tryToReconnectTo"];
+}) {
   return (
-    <WeldProvider
-      extensions={{
-        updateOnWindowFocus: true,
-        updateInterval: 30000, // Update wallet extensions every 30 seconds
-      }}
+    <DefaultWeldProvider
+      updateInterval={30_000}
       customWallets={{ blacklist: ["nufiSnap"] }}
+      wallet={{ tryToReconnectTo: lastConnectedWallet }}
     >
       {children}
-    </WeldProvider>
+    </DefaultWeldProvider>
   );
 }
