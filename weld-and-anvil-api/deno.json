@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "hono": "jsr:@hono/hono@^4.7.4"
+  },
+  "tasks": {
+    "serve": "deno run --allow-read --allow-net --watch mod.ts"
+  }
+}
