@@ -182,7 +182,7 @@ app.get("/", (c: Context) => {
                         const stakeAddrHex = await Weld.wallet.handler.getStakeAddressHex();
                         const messageUtf = \`account: \${stakeAddrBech32}\`;
                         const messageHex = utf8ToHex(messageUtf);
-                        const sigData = await Weld.wallet.handler.signData(messageHex, stakeAddrBech32);
+                        const sigData = await Weld.wallet.handler.signData(messageHex);
                         const result = await submitToBackend(sigData);
                     }
 
