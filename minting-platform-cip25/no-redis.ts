@@ -225,6 +225,11 @@ app.post("/submit", async (c: Context) => {
       PrivateKey.from_bech32(policyWallet.skey),
     );
 
+    console.log({
+      signatures: [signature], // A1000 returned from weld or whatever
+      transaction: transactionToSubmit.to_hex(),
+    });
+
     const submitted = await fetch(urlSubmit, {
       method: "POST",
       body: JSON.stringify({
@@ -281,26 +286,9 @@ app.get("/", (c: Context) => {
                     <div id="message" />
                 </div>
 
-                <script>
-                    function getAddr() {
-                        const addr = document.getElementById(
-                            "changeAddressBech32",
-                        ).innerHTML;
-                        return addr;
-                    }
-
-                    function getUtxos() {
-                        const utxos = document.getElementById("utxos").innerHTML;
-                        console.debug(utxos, typeof utxos);
-                        const arr = utxos.split(",");
-                        console.debug(arr);
-                        return arr;
-                    }
-                </script>
-
                 <button
                     hx-post="http://localhost:8000/mint"
-                    hx-vals='js:{"changeAddress": getAddr(), "utxos": getUtxos()}'
+                    hx-vals='js:{"changeAddress": Weld.wallet.changeAddressBech32, "utxos": Weld.wallet.utxos}'
                     hx-on::after-request="signAndSubmit(event)"
                     hx-swap="none"
                 >
@@ -345,22 +333,6 @@ app.get("/", (c: Context) => {
                         (balance) => {
                             document.querySelector("#balance").textContent =
                                 balance?.toFixed(2) ?? "-";
-                        },
-                    );
-                    window.Weld.wallet.subscribeWithSelector(
-                        (s) => s.utxos,
-                        (utxos) => {
-                            document.querySelector("#utxos").textContent =
-                                utxos ?? "-";
-                        },
-                    );
-
-                    window.Weld.wallet.subscribeWithSelector(
-                        (s) => s.changeAddressBech32,
-                        (changeAddressBech32) => {
-                            document.querySelector(
-                                "#changeAddressBech32",
-                            ).textContent = changeAddressBech32 ?? "-";
                         },
                     );
 

@@ -5,3 +5,4 @@ policy-*.json
 meta-manager-*.json
 
 airdrop/wallets/customer_*.json
+.DS_Store

@@ -274,9 +274,6 @@ app.get("/", (c: Context) => {
                           <button type="submit" class="btn text-center">
                               Connect Wallet
                           </button>
-
-                          <input type="hidden" id="changeAddressBech32" />
-                          <input type="hidden" id="utxos" />
                       </form>
                   </section>
 
@@ -285,27 +282,10 @@ app.get("/", (c: Context) => {
                       <div id="message" class="break" />
                   </div>
 
-                  <script>
-                      function getAddr() {
-                          const addr = document.getElementById(
-                              "changeAddressBech32",
-                          ).value;
-                          return addr;
-                      }
-
-                      function getUtxos() {
-                          const utxos = document.getElementById("utxos").value;
-                          console.debug(utxos, typeof utxos);
-                          const arr = utxos.split(",");
-                          console.debug(arr);
-                          return arr;
-                      }
-                  </script>
-
                   <form
                       hx-post="http://localhost:8000/send"
                       hx-on::after-request="signAndSubmit(event)"
-                      hx-vals='js:{"changeAddress": getAddr(), "utxos": getUtxos(), "lovelace": 1_000_000}'
+                      hx-vals='js:{"changeAddress": Weld.wallet.changeAddressBech32, "utxos": Weld.wallet.utxos}'
                       hx-swap="none"
                       hx-trigger="submit"
                   >
@@ -316,6 +296,13 @@ app.get("/", (c: Context) => {
                           value=""
                           type="text"
                           placeholder="Recipient Address"
+                      />
+
+                      <input
+                          name="lovelace"
+                          id="lovelace"
+                          value="1000000"
+                          type="hidden"
                       />
 
                       <button type="submit" class="btn">Send 1 ADA</button>
@@ -370,21 +357,6 @@ app.get("/", (c: Context) => {
                       (balance) => {
                           document.querySelector("#balance").textContent =
                               balance?.toFixed(2) ?? "-";
-                      },
-                  );
-                  window.Weld.wallet.subscribeWithSelector(
-                      (s) => s.utxos,
-                      (utxos) => {
-                          console.debug("Refreshing UTXOs");
-                          document.querySelector("#utxos").value = utxos ?? "-";
-                      },
-                  );
-
-                  window.Weld.wallet.subscribeWithSelector(
-                      (s) => s.changeAddressBech32,
-                      (changeAddressBech32) => {
-                          document.querySelector("#changeAddressBech32").value =
-                              changeAddressBech32 ?? "-";
                       },
                   );
 
