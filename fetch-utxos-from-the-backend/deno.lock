@@ -1,0 +1,80 @@
+{
+  "version": "4",
+  "specifiers": {
+    "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1": "14.1.1",
+    "npm:@utxorpc/sdk@~0.6.7": "0.6.7_@connectrpc+connect@1.4.0__@bufbuild+protobuf@1.10.0"
+  },
+  "npm": {
+    "@bufbuild/protobuf@1.10.0": {
+      "integrity": "sha512-QDdVFLoN93Zjg36NoQPZfsVH9tZew7wKDKyV5qRdj8ntT4wQCOradQjRaTdwMhWUYsgKsvCINKKm87FdEk96Ag=="
+    },
+    "@connectrpc/connect-node@1.4.0_@bufbuild+protobuf@1.10.0_@connectrpc+connect@1.4.0__@bufbuild+protobuf@1.10.0": {
+      "integrity": "sha512-0ANnrr6SvsjevsWEgdzHy7BaHkluZyS6s4xNoVt7RBHFR5V/kT9lPokoIbYUOU9JHzdRgTaS3x5595mwUsu15g==",
+      "dependencies": [
+        "@bufbuild/protobuf",
+        "@connectrpc/connect",
+        "undici"
+      ]
+    },
+    "@connectrpc/connect-web@1.4.0_@bufbuild+protobuf@1.10.0_@connectrpc+connect@1.4.0__@bufbuild+protobuf@1.10.0": {
+      "integrity": "sha512-13aO4psFbbm7rdOFGV0De2Za64DY/acMspgloDlcOKzLPPs0yZkhp1OOzAQeiAIr7BM/VOHIA3p8mF0inxCYTA==",
+      "dependencies": [
+        "@bufbuild/protobuf",
+        "@connectrpc/connect"
+      ]
+    },
+    "@connectrpc/connect@1.4.0_@bufbuild+protobuf@1.10.0": {
+      "integrity": "sha512-vZeOkKaAjyV4+RH3+rJZIfDFJAfr+7fyYr6sLDKbYX3uuTVszhFe9/YKf5DNqrDb5cKdKVlYkGn6DTDqMitAnA==",
+      "dependencies": [
+        "@bufbuild/protobuf"
+      ]
+    },
+    "@emurgo/cardano-serialization-lib-nodejs@14.1.1": {
+      "integrity": "sha512-UpQzrDOolgssJHeaaMUS+ShDTNBHCnzgKd95G/2Hg9+l8i3zTJ7dlGQDEk/35LgLt8twCHWZDCytrpx7PY12ww=="
+    },
+    "@fastify/busboy@2.1.1": {
+      "integrity": "sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA=="
+    },
+    "@utxorpc/sdk@0.6.7_@connectrpc+connect@1.4.0__@bufbuild+protobuf@1.10.0": {
+      "integrity": "sha512-wBRZLbSbpvQf9EkqjjKbPlv8VO1ovPITsPYu9R+39ScZ8Uywnj6G7vqv7UWZthX9tglwwDqNLoyM9k4QuJHBcQ==",
+      "dependencies": [
+        "@connectrpc/connect",
+        "@connectrpc/connect-node",
+        "@connectrpc/connect-web",
+        "@utxorpc/spec",
+        "buffer"
+      ]
+    },
+    "@utxorpc/spec@0.16.0": {
+      "integrity": "sha512-EK2M0TBp14MrRCYDuFeJ+bAS39RxxLLh+CD08h/YvAgxSv/4ZOBCf1/sxHAGCBGGndB4heZYFeuQ+i1i8vP5lw==",
+      "dependencies": [
+        "@bufbuild/protobuf"
+      ]
+    },
+    "base64-js@1.5.1": {
+      "integrity": "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA=="
+    },
+    "buffer@6.0.3": {
+      "integrity": "sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==",
+      "dependencies": [
+        "base64-js",
+        "ieee754"
+      ]
+    },
+    "ieee754@1.2.1": {
+      "integrity": "sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA=="
+    },
+    "undici@5.29.0": {
+      "integrity": "sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==",
+      "dependencies": [
+        "@fastify/busboy"
+      ]
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1",
+      "npm:@utxorpc/sdk@~0.6.7"
+    ]
+  }
+}
