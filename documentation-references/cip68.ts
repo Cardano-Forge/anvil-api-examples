@@ -56,6 +56,7 @@ const assets: {
   };
   policyId: string;
   quantity: 1;
+  destAddress?: string;
 }[] = [];
 
 const assetMetadataTemplate = {
@@ -80,6 +81,7 @@ assets.push(
     },
     policyId: getPolicyId(policyAnvilApi.mint_script),
     quantity: 1,
+    destAddress: metaManagerWallet.enterprise_address_preprod,
   },
   {
     version: "cip68",
@@ -94,21 +96,7 @@ const data = {
   mint: assets,
   outputs: [
     {
-      address: metaManagerWallet.enterprise_address_preprod,
-      assets: [
-        {
-          assetName: {
-            name: `anvilapicip68_${counter}`,
-            format: "utf8",
-            label: 100,
-          },
-          policyId: getPolicyId(policyAnvilApi.mint_script),
-          quantity: 1,
-        },
-      ],
-    },
-    {
-      address: customerWallet.enterprise_address_preprod,
+      address: customerWallet.enterprise_address_preprod, // optional because same as change.
       assets: [
         {
           assetName: {
