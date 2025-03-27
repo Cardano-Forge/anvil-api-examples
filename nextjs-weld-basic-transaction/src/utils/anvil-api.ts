@@ -5,7 +5,7 @@ const BASE_URL = `https://${NETWORK}.api.ada-anvil.app/v2/services`;
 
 interface AnvilApiConfig<T = Record<string, unknown>> {
   endpoint: string;
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST";
   body?: T;
   apiKey?: string;
 }
