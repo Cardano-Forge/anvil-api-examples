@@ -64,7 +64,7 @@ export function useTransactionSubmission() {
 
         // Step 2: Sign transaction
         setStatus("signing");
-        const signature = await wallet.handler.signTx(buildData.complete, true);
+        const signature = await wallet.handler.signTx(buildData.complete);
 
         if (!signature) {
           throw new Error("Failed to sign transaction");

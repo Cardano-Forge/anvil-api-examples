@@ -49,7 +49,7 @@ src/
 
 - Node.js 18+ and npm
 - Anvil API key
-- Cardano wallet extension (Nami, Eternl, Flint, or other compatible wallets)
+- Cardano wallet extension (Any CIP-30 compatible wallets i.e. Eternl, Lace, or other compatible wallets)
 
 ## Environment Setup
 
@@ -104,7 +104,7 @@ npm run dev
 ```json
 {
   "changeAddress": "addr1...",
-  "utxos": ["tx1...", "tx2..."],
+  "utxos": ['8282....', '8282....']
   "outputs": [
     {
       "address": "addr1...",
@@ -125,7 +125,7 @@ npm run dev
 ```json
 {
   "transaction": "serialized_tx_cbor",
-  "signatures": ["signature1", "signature2"]
+  "signatures": ["a0...", "a0..."]
 }
 ```
 

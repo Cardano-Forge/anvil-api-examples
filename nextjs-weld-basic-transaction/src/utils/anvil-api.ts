@@ -1,7 +1,6 @@
 "use server";
 
-const NETWORK = process.env.NEXT_PUBLIC_NETWORK || "preprod";
-const BASE_URL = `https://${NETWORK}.api.ada-anvil.app/v2/services`;
+const BASE_URL = process.env.NEXT_PUBLIC_ANVIL_API_URL;
 
 interface AnvilApiConfig<T = Record<string, unknown>> {
   endpoint: string;
@@ -16,6 +15,10 @@ export async function callAnvilApi<T, B = Record<string, unknown>>({
   body,
   apiKey,
 }: AnvilApiConfig<B>): Promise<T> {
+  if (!BASE_URL) {
+    throw new Error("Anvil API base URL is not configured");
+  }
+
   const key = apiKey || process.env.ANVIL_API_KEY;
   if (!key) {
     throw new Error("API key is required for Anvil API");
@@ -69,15 +72,6 @@ export interface TransactionBuildResult {
 export async function buildTransaction(
   params: BuildTransactionParams,
 ): Promise<TransactionBuildResult> {
-  if (!params.changeAddress) {
-    throw new Error("Change address is required");
-  }
-  if (!params.utxos || !params.utxos.length) {
-    throw new Error("UTXOs are required");
-  }
-  if (!params.outputs || !params.outputs.length) {
-    throw new Error("Outputs are required");
-  }
 
   return callAnvilApi<TransactionBuildResult, BuildTransactionParams>({
     endpoint: "transactions/build",
@@ -97,12 +91,6 @@ export interface TransactionSubmitResult {
 export async function submitTransaction(
   params: SubmitTransactionParams,
 ): Promise<TransactionSubmitResult> {
-  if (!params.transaction) {
-    throw new Error("Transaction is required");
-  }
-  if (params.signatures && !params.signatures.length) {
-    throw new Error("Signatures are required");
-  }
 
   return callAnvilApi<TransactionSubmitResult, SubmitTransactionParams>({
     endpoint: "transactions/submit",

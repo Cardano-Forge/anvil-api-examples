@@ -5,6 +5,20 @@ import { useWallet } from "@ada-anvil/weld/react";
 import { useTransactionSubmission } from "@/hooks/useTransactionSubmission";
 const NETWORK = process.env.NEXT_PUBLIC_NETWORK || "preprod";
 
+const getExplorerUrl = (txHash: string) => {
+  return NETWORK === "mainnet"
+    ? `https://cexplorer.io/tx/${txHash}`
+    : `https://${NETWORK}.cexplorer.io/tx/${txHash}`;
+};
+
+function getButtonText(status: string, adaAmount: number): string {
+  if (status === "building") return "Building...";
+  if (status === "signing") return "Signing...";
+  if (status === "submitting") return "Submitting...";
+  if (adaAmount === 0) return "Send ADA";
+  return `Send ${adaAmount} ADA`;
+}
+
 export default function TransactionForm() {
   // Form state
   const [recipient, setRecipient] = useState("");
@@ -39,7 +53,7 @@ export default function TransactionForm() {
         <span>Transaction ID:</span>
         <br />
         <a
-          href={`https://${NETWORK}.cexplorer.io/tx/${txHash}`}
+          href={getExplorerUrl(txHash)}
           target="_blank"
           rel="noopener noreferrer"
           className="break mt-1 font-mono text-sm text-blue-600 underline"
@@ -53,14 +67,6 @@ export default function TransactionForm() {
         </div>
       </section>
     );
-  }
-
-  function getButtonText() {
-    if (status === "building") return "Building...";
-    if (status === "signing") return "Signing...";
-    if (status === "submitting") return "Submitting...";
-    if (adaAmount === 0) return "Send ADA";
-    return `Send ${adaAmount} ADA`;
   }
 
   const isFormDisabled =
@@ -79,20 +85,28 @@ export default function TransactionForm() {
         )}
 
         {/* Recipient address input */}
-        <input
-          className="custom-rounded mb-2"
-          name="recipient"
-          id="recipient"
-          value={recipient}
-          onChange={(e) => setRecipient(e.target.value)}
-          type="text"
-          placeholder="Recipient Address"
-          required
-          disabled={isFormDisabled}
-        />
+        <div className="mb-2">
+          <label htmlFor="recipient" className="block mb-1 font-medium">
+            Recipient Address
+          </label>
+          <input
+            className="custom-rounded"
+            name="recipient"
+            id="recipient"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            type="text"
+            placeholder="addr..."
+            required
+            disabled={isFormDisabled}
+          />
+        </div>
 
         {/* ADA amount input */}
         <div className="mb-4">
+          <label htmlFor="ada-amount" className="block mb-1 font-medium">
+            Amount (ADA)
+          </label>
           <input
             className="custom-rounded"
             name="ada-amount"
@@ -105,7 +119,7 @@ export default function TransactionForm() {
             type="number"
             min="1"
             step="1"
-            placeholder="Amount (ADA)"
+            placeholder="Amount in ADA"
             required
             disabled={isFormDisabled}
           />
@@ -113,7 +127,7 @@ export default function TransactionForm() {
 
         {/* Submit button */}
         <button type="submit" className="btn" disabled={isFormDisabled}>
-          {getButtonText()}
+          {getButtonText(status, adaAmount)}
         </button>
 
         {error && (
