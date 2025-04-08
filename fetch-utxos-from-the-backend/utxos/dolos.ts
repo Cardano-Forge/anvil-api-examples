@@ -45,6 +45,10 @@ for (const utxo of utxos) {
 }
 console.timeEnd("build_utxo_dolos");
 
-// console.log("Parsed UTXO", parsedUtxo.to_json());
+const utxoHexes: string[] = [];
+for (let i = 0; i < parsedUtxo.len(); i++) {
+  utxoHexes.push(parsedUtxo.get(i).to_hex());
+}
+console.log(utxoHexes);
 
 Deno.exit(0);
