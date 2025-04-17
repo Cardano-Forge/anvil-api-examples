@@ -9,7 +9,7 @@ ASSET_NAME_1="616e76696c61706963697032355f333837393837393739"
 ASSET_NAME_2="616e76696c61706963697032355f333837393732"
 
 # See Authentication page for API key details.
-X_API_KEY="CgYuz62xAS7EfM0hCP1gz1aOeHlQ4At36pGwnnLf"
+X_API_KEY="testnet_EyrkvCWDZqjkfLSe1pxaF0hXxUcByHEhHuXIBjt9"
 API_URL="https://preprod.api.ada-anvil.app/v2/services"
 
 
