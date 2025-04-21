@@ -28,7 +28,7 @@ const ANVIL_API_URL = "https://preprod.api.ada-anvil.app/v2/services";
 
 const HEADERS = {
   "Content-Type": "application/json",
-  "X-Api-Key": "CgYuz62xAS7EfM0hCP1gz1aOeHlQ4At36pGwnnLf",
+  "X-Api-Key": "testnet_EyrkvCWDZqjkfLSe1pxaF0hXxUcByHEhHuXIBjt9",
 };
 
 // localhost:6379
