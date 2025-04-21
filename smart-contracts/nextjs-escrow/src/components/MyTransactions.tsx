@@ -40,10 +40,6 @@ const STATUS_DETAILS: Record<TransactionStatus, string> = {
   [TX_STATUS.UNLOCKED]: 'Funds have been successfully unlocked',
 };
 
-// Utility functions remain outside the component
-
-// All components will be inside the main function
-
 export default function MyTransactions() {
   const wallet = useWallet();
   const address = wallet.changeAddressBech32;
