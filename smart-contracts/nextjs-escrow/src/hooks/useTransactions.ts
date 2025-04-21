@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Transaction, TransactionStatus, TX_STATUS } from '@/lib/types';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 //--------------------------------------------------------------
 // React Query-dependent hooks for data fetching and cache updates
@@ -16,7 +16,7 @@ import { useCallback, useState } from 'react';
 export function usePollingTransactions(wallet?: string) {
   const [hasPendingTx, setHasPendingTx] = useState(false);
   
-  return useQuery<Transaction[], Error, Transaction[]>({
+  const query = useQuery<Transaction[], Error>({
     queryKey: ['transactions', wallet],
     queryFn: async () => {
       if (!wallet) throw new Error("Wallet is required");
@@ -24,16 +24,19 @@ export function usePollingTransactions(wallet?: string) {
       return response.json();
     },
     enabled: !!wallet,
-    select: (data) => {
-      // Check if pending state changed and update accordingly
-      const isPending = data.some(tx => tx.status === TX_STATUS.PENDING);
+    refetchInterval: wallet && hasPendingTx ? 5000 : false,
+  });
+  
+  useEffect(() => {
+    if (query.data) {
+      const isPending = query.data.some(tx => tx.status === TX_STATUS.PENDING);
       if (isPending !== hasPendingTx) {
         setHasPendingTx(isPending);
       }
-      return data;
-    },
-    refetchInterval: wallet && hasPendingTx ? 5000 : false,
-  });
+    }
+  }, [query.data, hasPendingTx]);
+  
+  return query;
 }
 
 export function useTransactionUpdater(wallet?: string) {
@@ -109,26 +112,25 @@ interface BuildTransactionResponse {
   error?: string;
 }
 
+const apiPost = async <T>(endpoint: string, payload: Record<string, unknown>): Promise<T> => {
+  const response = await fetch(`/api/escrow/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(data.error);
+  }
+  
+  return data as T;
+};
+
 export function useTransactionOperations(wallet: CardanoWallet, address?: string) {
   const [processing, setProcessing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const updateTransaction = useTransactionUpdater(address);
-
-  // Helper functions for API calls
-  const apiPost = async <T,>(endpoint: string, payload: Record<string, unknown>): Promise<T> => {
-    const response = await fetch(`/api/escrow/${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    
-    return data as T;
-  };
 
   // Transaction building functions
   const buildUnlockTransaction = async (txHash: string, amount: number) => {
@@ -193,7 +195,6 @@ export function useTransactionOperations(wallet: CardanoWallet, address?: string
     });
   };
   
-  // Main public functions
   const lockFunds = async (adaAmount: number) => {
     if (!address) return null;
     

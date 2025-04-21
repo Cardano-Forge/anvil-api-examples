@@ -1,9 +1,8 @@
-const API_ENDPOINT = 'https://preprod.api.ada-anvil.app/v2/services';
-
+const API = process.env.ANVIL_API_ENDPOINT;
 const X_API_KEY = process.env.ANVIL_API_KEY;
 
-if (!X_API_KEY) {
-  throw new Error('ANVIL_API_KEY environment variable is not set');
+if (!API || !X_API_KEY) {
+  throw new Error('ANVIL_API_ENDPOINT or ANVIL_API_KEY environment variables are not set');
 }
 
 const getHeaders = () => ({
@@ -19,9 +18,9 @@ const handleApiError = (context: string, error: unknown): string => {
 };
 
 // Generic API fetch with error handling
-async function fetchApi<T>(url: string, options: RequestInit, context: string): Promise<T> {
+async function fetchApi<T>(endpoint: string, options: RequestInit, context: string): Promise<T> {
   try {
-    const response = await fetch(url, options);
+    const response = await fetch(`${API}${endpoint}`, options);
     
     if (!response.ok) {
       const errText = await response.text();
@@ -69,7 +68,7 @@ export interface UnlockFundsResponse {
  */
 export async function getScriptAddress(validatorHash: string): Promise<string> {
   const data = await fetchApi<{ hex: string }>(
-    `${API_ENDPOINT}/validators/${validatorHash}/address`,
+    `/validators/${validatorHash}/address`,
     {
       method: 'GET',
       headers: getHeaders(),
@@ -84,7 +83,7 @@ export async function getScriptAddress(validatorHash: string): Promise<string> {
  */
 export async function getAddressKeyHash(address: string): Promise<string> {
   const data = await fetchApi<{ payment: string }>(
-    `${API_ENDPOINT}/utils/addresses/parse`,
+    `/utils/addresses/parse`,
     {
       method: 'POST',
       headers: getHeaders(),
@@ -137,7 +136,7 @@ export async function lockFunds(params: LockFundsParams): Promise<LockFundsRespo
 
     // Build the transaction using our generic fetch utility
     const result = await fetchApi<{ hash: string, complete: string }>(
-      `${API_ENDPOINT}/transactions/build`,
+      `/transactions/build`,
       {
         method: 'POST',
         headers: getHeaders(),
@@ -197,7 +196,7 @@ export async function unlockFunds(
 
     // Build the transaction using our generic fetch utility
     const result = await fetchApi<{ complete: string }>(
-      `${API_ENDPOINT}/transactions/build`,
+      `/transactions/build`,
       {
         method: 'POST',
         headers: getHeaders(),
@@ -218,7 +217,7 @@ export async function unlockFunds(
 export async function submitTransaction(signedTx: string, complete: string): Promise<{ txHash: string }> {
   // Use our generic fetch utility with proper error handling
   const result = await fetchApi<{ txHash: string }>(
-    `${API_ENDPOINT}/transactions/submit`,
+    `/transactions/submit`,
     {
       method: 'POST',
       headers: getHeaders(),

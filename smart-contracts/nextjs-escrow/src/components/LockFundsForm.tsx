@@ -18,7 +18,7 @@ export default function LockFundsForm() {
     maxAmount, 
     handleAmountChange, 
     handleInputChange,
-    getSliderBackground,
+    sliderBackground,
     isWalletConnected
   } = useAmountSlider({ wallet });
 
@@ -84,7 +84,7 @@ export default function LockFundsForm() {
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50 slider-thumb"
                 disabled={!isWalletConnected}
                 style={{
-                  background: getSliderBackground()
+                  background: sliderBackground
                 }}
               />
             </div>

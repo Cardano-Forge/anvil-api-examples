@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from 'react';
+import { useState, ChangeEvent, useMemo, useEffect } from 'react';
 import { useWallet } from '@ada-anvil/weld/react';
 
 type UseAmountSliderProps = {
@@ -9,9 +9,11 @@ export const useAmountSlider = ({ wallet }: UseAmountSliderProps) => {
   const [amount, setAmount] = useState<number>(1);
   const maxAmount = Number(wallet.balanceAda?.toFixed(2) || 1);
   
-  if (!wallet.isConnected && amount !== 1) {
-    setAmount(1);
-  }
+  useEffect(() => {
+    if (!wallet.isConnected && amount !== 1) {
+      setAmount(1);
+    }
+  }, [wallet.isConnected, amount]);
   
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newAmount = parseFloat(e.target.value);
@@ -35,11 +37,13 @@ export const useAmountSlider = ({ wallet }: UseAmountSliderProps) => {
     }
   };
   
-  const getSliderBackground = () => {
-    if (!wallet.isConnected) return '#e5e7eb';
+  const isConnected = wallet.isConnected;
+  
+  const sliderBackground = useMemo(() => {
+    if (!isConnected) return '#e5e7eb';
     const percentage = (amount / maxAmount) * 100;
     return `linear-gradient(to right, black 0%, black ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`;
-  };
+  }, [isConnected, amount, maxAmount]);
   
   return {
     amount,
@@ -47,7 +51,7 @@ export const useAmountSlider = ({ wallet }: UseAmountSliderProps) => {
     maxAmount,
     handleAmountChange,
     handleInputChange,
-    getSliderBackground,
+    sliderBackground,
     isWalletConnected: wallet.isConnected
   };
 };

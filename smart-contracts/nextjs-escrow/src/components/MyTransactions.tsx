@@ -40,31 +40,9 @@ const STATUS_DETAILS: Record<TransactionStatus, string> = {
   [TX_STATUS.UNLOCKED]: 'Funds have been successfully unlocked',
 };
 
-const renderEmptyState = () => (
-  <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
-    <p className="text-gray-600">No transactions found. Lock some funds to get started.</p>
-  </div>
-);
+// Utility functions remain outside the component
 
-const renderWalletNotConnected = () => (
-  <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
-    <p className="text-gray-600">Please connect your wallet to view your transactions.</p>
-  </div>
-);
-
-const renderLoadingState = () => (
-  <div className="p-8 text-center">
-    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-blue-600"></div>
-    <p className="mt-2 text-gray-600">Loading your transactions...</p>
-  </div>
-);
-
-const renderErrorState = (errorMessage: string) => (
-  <div className="p-6 bg-red-50 text-red-700 rounded-lg border border-red-200">
-    <h3 className="font-bold mb-2">Error loading transactions</h3>
-    <p>{errorMessage}</p>
-  </div>
-);
+// All components will be inside the main function
 
 export default function MyTransactions() {
   const wallet = useWallet();
@@ -80,110 +58,122 @@ export default function MyTransactions() {
     });
   };
   
-  const renderContent = () => {
-    if (!address) return renderWalletNotConnected();
-    if (error) return renderErrorState((error as Error).message);
-    if (isLoading) return renderLoadingState();
-    return (
-      <>
-        {unlockError && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-            {unlockError}
-          </div>
-        )}
-        {renderTransactions()}
-      </>
-    );
-  }
-
-  const renderActionButton = (transaction: Transaction) => {
-    if (transaction.status === TX_STATUS.CONFIRMED) {
-      return (
-        <button
-          disabled={unlocking === transaction.txHash}
-          className="button-primary py-1 px-3 text-sm disabled:opacity-50"
-          onClick={() => handleUnlock(transaction.txHash, transaction.amount)}
-        >
-          {unlocking === transaction.txHash ? 'Unlocking…' : 'Unlock'}
-        </button>
-      );
-    }
-    return <span className="text-gray-400">-</span>;
-  };
-
-  const renderTransactions = () => {
-    if (transactions.length === 0) {
-      return renderEmptyState();
-    }
-    
-    return (
-      <table className="w-full text-left border-collapse text-black">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">Transaction</th>
-            <th className="px-4 py-2 text-right">Amount</th>
-            <th className="px-4 py-2 text-center">Status</th>
-            <th className="px-4 py-2">Date</th>
-            <th className="px-4 py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transactions.map((transaction: Transaction) => {
-            const isPending = transaction.status === TX_STATUS.PENDING;
-            
-            return (
-              <tr 
-                key={transaction.txHash} 
-                className={`border-t hover:bg-gray-50 ${isPending ? 'bg-yellow-50' : ''}`}
-              >
-                <td className="px-4 py-3 font-mono">
-                  <a 
-                    href={`https://preprod.cardanoscan.io/transaction/${transaction.txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-700 hover:underline"
-                    title={transaction.txHash}
-                  >
-                    {formatTxHash(transaction.txHash)}
-                  </a>
-                </td>
-                <td className="px-4 py-3 text-right">{formatAmount(transaction.amount)} ADA</td>
-                <td className="px-4 py-3 text-center">
-                  {isPending ? (
-                      <span className="inline-flex items-center" title={STATUS_DETAILS[transaction.status]}>
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${STATUS_STYLES[transaction.status]}`}>
-                          {STATUS_LABELS[transaction.status]}
-                        </span>
-                        <span className="ml-2 flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-yellow-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
-                        </span>
-                      </span> 
-                    ) : (
-                      <span 
-                        className={`inline-block px-2 py-1 rounded text-xs font-medium ${STATUS_STYLES[transaction.status] || 'bg-gray-100 text-gray-800'}`}
-                        title={STATUS_DETAILS[transaction.status]}
-                      > 
-                      {STATUS_LABELS[transaction.status] || transaction.status}
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3">{formatDate(transaction.timestamp)}</td>
-                <td className="px-4 py-3 text-center">
-                  {renderActionButton(transaction)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    );
-  };
-  
   return (
     <section className="section-card text-black">
       <h2 className="text-xl font-bold mb-4 text-black">My Transactions</h2>
-      {renderContent()}
+      
+      {/* Handle different states */}
+      {!address && (
+        <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-gray-600">Please connect your wallet to view your transactions.</p>
+        </div>
+      )}
+      
+      {address && error && (
+        <div className="p-6 bg-red-50 text-red-700 rounded-lg border border-red-200">
+          <h3 className="font-bold mb-2">Error loading transactions</h3>
+          <p>{(error as Error).message}</p>
+        </div>
+      )}
+      
+      {address && isLoading && (
+        <div className="p-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-blue-600"></div>
+          <p className="mt-2 text-gray-600">Loading your transactions...</p>
+        </div>
+      )}
+      
+      {/* Display transactions if no errors, not loading, and have an active Weld wallet address*/}
+      {address && !error && !isLoading && (
+        <>
+          {/* Display any unlock errors */}
+          {unlockError && (
+            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
+              {unlockError}
+            </div>
+          )}
+          
+          {/* Display empty state if no transactions */}
+          {transactions.length === 0 ? (
+            <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-gray-600">No transactions found. Lock some funds to get started.</p>
+            </div>
+          ) : (
+            // Display transactions table
+            <table className="w-full text-left border-collapse text-black">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2">Transaction</th>
+                  <th className="px-4 py-2 text-right">Amount</th>
+                  <th className="px-4 py-2 text-center">Status</th>
+                  <th className="px-4 py-2">Date</th>
+                  <th className="px-4 py-2">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((transaction: Transaction) => {
+                  const isPending = transaction.status === TX_STATUS.PENDING;
+                  
+                  return (
+                    <tr 
+                      key={transaction.txHash} 
+                      className={`border-t hover:bg-gray-50 ${isPending ? 'bg-yellow-50' : ''}`}
+                    >
+                      <td className="px-4 py-3 font-mono">
+                        <a 
+                          href={`https://preprod.cardanoscan.io/transaction/${transaction.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-700 hover:underline"
+                          title={transaction.txHash}
+                        >
+                          {formatTxHash(transaction.txHash)}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3 text-right">{formatAmount(transaction.amount)} ADA</td>
+                      <td className="px-4 py-3 text-center">
+                        {isPending ? (
+                            <span className="inline-flex items-center" title={STATUS_DETAILS[transaction.status]}>
+                              <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${STATUS_STYLES[transaction.status]}`}>
+                                {STATUS_LABELS[transaction.status]}
+                              </span>
+                              <span className="ml-2 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-yellow-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                              </span>
+                            </span> 
+                          ) : (
+                            <span 
+                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${STATUS_STYLES[transaction.status] || 'bg-gray-100 text-gray-800'}`}
+                              title={STATUS_DETAILS[transaction.status]}
+                            > 
+                            {STATUS_LABELS[transaction.status] || transaction.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">{formatDate(transaction.timestamp)}</td>
+                      <td className="px-4 py-3 text-center">
+                        {/* Unlock button, only visible for confirmed transactions */}
+                        {transaction.status === TX_STATUS.CONFIRMED ? (
+                          <button
+                            disabled={unlocking === transaction.txHash}
+                            className="button-primary py-1 px-3 text-sm disabled:opacity-50"
+                            onClick={() => handleUnlock(transaction.txHash, transaction.amount)}
+                          >
+                            {unlocking === transaction.txHash ? 'Unlocking…' : 'Unlock'}
+                          </button>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
     </section>
   );
 }
