@@ -14,14 +14,9 @@ import {
 
 import { API_URL, HEADERS } from "./constant.ts";
 
-// Note: Tested on mainnet
-
 export async function dateToSlot(date: Date) {
   try {
-    // Convert the date to a Unix timestamp in milliseconds
     const timeInMilliseconds = date.getTime();
-    
-    // Call the Anvil API
     const response = await fetch(`${API_URL}/utils/network/time-to-slot`, {
       method: 'POST',
       headers: HEADERS,
