@@ -2,15 +2,15 @@ import { Buffer } from "node:buffer";
 import { randomBytes } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
+import { 
+  getPolicyId,
+  dateToSlot,
+  createPolicyScript,
+} from "../utils/shared.ts";
 import {
   Ed25519KeyHash,
   FixedTransaction,
-  NativeScript,
-  NativeScripts,
   PrivateKey,
-  ScriptAll,
-  ScriptPubkey,
-  TimelockExpiry,
 } from "@emurgo/cardano-serialization-lib-nodejs";
 
 import policyWallet from "./policy.json" with { type: "json" };
@@ -61,42 +61,11 @@ function generateUniqueNFT() {
   return character;
 }
 
-export function dateToSlot(date: Date) {
-  return Math.floor(date.getTime() / 1000) - 1596491091 + 4924800;
-}
 
-export function createPolicyScript(
-  policyKeyHash: string,
-  ttl: number,
-  withTimelock = true,
-): { mintScript: NativeScript; policyTTL: number } {
-  const scripts = NativeScripts.new();
-  const keyHashScript = NativeScript.new_script_pubkey(
-    ScriptPubkey.new(Ed25519KeyHash.from_hex(policyKeyHash)),
-  );
-  scripts.add(keyHashScript);
-
-  const policyTTL: number = ttl;
-
-  if (withTimelock) {
-    const timelock = TimelockExpiry.new(policyTTL);
-    const timelockScript = NativeScript.new_timelock_expiry(timelock);
-    scripts.add(timelockScript);
-  }
-
-  const mintScript = NativeScript.new_script_all(ScriptAll.new(scripts));
-
-  return { mintScript, policyTTL };
-}
-
-export function getPolicyId(mintScript: NativeScript): string {
-  return Buffer.from(mintScript.hash().to_bytes()).toString("hex");
-}
-
-function createOrLoadPolicy() {
-  const slot = dateToSlot(new Date(EXPIRATION_DATE));
+async function createOrLoadPolicy() {
+  const slot = await dateToSlot(new Date(EXPIRATION_DATE));
   const keyHash = policyWallet.key_hash;
-  const policy = createPolicyScript(keyHash, slot, true);
+  const policy = createPolicyScript(Ed25519KeyHash.from_hex(keyHash), slot, true);
 
   return { policy, slot, keyHash };
 }
@@ -168,8 +137,8 @@ async function createTransaction(
 app.post("/mint", async (c: Context) => {
   const { changeAddress, utxos } = await c.req.json();
 
-  const { policy, keyHash, slot } = createOrLoadPolicy();
-  const policyId = getPolicyId(policy.mintScript);
+  const { policy, keyHash, slot } = await createOrLoadPolicy();
+  const policyId = getPolicyId(policy.mint_script);
   const metadata = generateUniqueNFT();
 
   const asset = {

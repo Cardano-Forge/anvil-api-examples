@@ -22,7 +22,7 @@ const metaManagerWallet = JSON.parse(
 const expirationDate = "2026-01-01";
 const counter = new Date().getTime();
 
-const slot = dateToSlot(new Date(expirationDate));
+const slot = await dateToSlot(new Date(expirationDate));
 const keyhash = getKeyhash(policyWallet.base_address_preprod);
 
 if (!keyhash) {
