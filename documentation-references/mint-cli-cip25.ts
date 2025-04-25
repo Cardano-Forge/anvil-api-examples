@@ -37,7 +37,7 @@ const customerWallet = JSON.parse(
 const policyWallet = JSON.parse(Deno.readTextFileSync(args.policyWalletPath));
 
 // Date before you can interact with the policy
-const slot = dateToSlot(new Date(args.expireDate));
+const slot = await dateToSlot(new Date(args.expireDate));
 const keyhash = getKeyhash(policyWallet.base_address_preprod);
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");

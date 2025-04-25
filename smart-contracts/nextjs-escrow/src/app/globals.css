@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+:root {
+    --background: #0a0a0a86;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .button-primary {
+    @apply
+      border-2
+      border-neutral-800
+      rounded-2xl
+      px-4
+      py-2
+      font-bold
+      shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+      transition-all
+      hover:translate-x-1
+      hover:translate-y-1
+      hover:shadow-none
+      bg-white
+      hover:bg-gray-100
+      text-black;
+  }
+
+  .section-card {
+    @apply
+      border-2
+      border-neutral-800
+      rounded-2xl
+      p-4
+      mb-4
+      shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+      bg-white;
+  }
+  
+  /* Custom slider styles for cross-browser compatibility */
+  .slider-thumb {
+    @apply appearance-none;
+  }
+  
+  /* Webkit browsers (Chrome, Safari) */
+  .slider-thumb::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 bg-black rounded-full cursor-pointer;
+  }
+  
+  /* Firefox */
+  .slider-thumb::-moz-range-thumb {
+    @apply appearance-none w-4 h-4 bg-black rounded-full cursor-pointer border-0;
+  }
+  
+  /* Microsoft Edge */
+  .slider-thumb::-ms-thumb {
+    @apply appearance-none w-4 h-4 bg-black rounded-full cursor-pointer;
+  }
+}
