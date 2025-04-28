@@ -12,9 +12,27 @@ import {
   TimelockExpiry,
 } from "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1";
 
-// Note: Tested on mainnet
-export function dateToSlot(date: Date) {
-  return Math.floor(date.getTime() / 1000) - 1596491091 + 4924800;
+import { API_URL, HEADERS } from "./constant.ts";
+
+export async function dateToSlot(date: Date) {
+  try {
+    const timeInMilliseconds = date.getTime();
+    const response = await fetch(`${API_URL}/utils/network/time-to-slot`, {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({ time: timeInMilliseconds }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Network response was not ok: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.slot;
+  } catch (error) {
+    console.error('Error in dateToSlot:', error);
+    throw error;
+  }
 }
 
 export function getKeyhash(bech32Address: string): Ed25519KeyHash | undefined {

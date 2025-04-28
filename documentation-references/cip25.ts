@@ -29,7 +29,7 @@ const counter = new Date().getTime();
 // Set Policy
 //
 // Date before you can interact with the policy
-const slot = dateToSlot(new Date(expirationDate));
+const slot = await dateToSlot(new Date(expirationDate));
 const keyhash = getKeyhash(policyWallet.skey);
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");
