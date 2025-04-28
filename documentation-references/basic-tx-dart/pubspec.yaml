@@ -1,0 +1,10 @@
+name: anvil_api
+description: Basic Transaction using Dart
+version: 1.0.0
+
+environment:
+  sdk: ^3.7.2
+
+# Add regular dependencies here.
+dependencies:
+  http: ^1.3.0
