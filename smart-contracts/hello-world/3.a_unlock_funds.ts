@@ -26,7 +26,7 @@ const input = {
       // This Output ref and index is the UTXO locked at the previous step.
       outputRef: {
         txHash:
-          "a68c52abfbb6f0543f452f5305a13cefa3f112e53e2733e1023b3340f6d97b9a", // ACTION: Replace with your txHash
+          "80d231e6a5a5882a7e92dfc418eb91f7f82704d5c75bd55a38776057e1b401d6", // ACTION: Replace with your txHash
         index: 0, // ACTION: Replace with you index (if you follow this example it is 0, it is based on the utxos order in the tx)
       },
       redeemer: {
@@ -38,7 +38,7 @@ const input = {
       },
     },
   ],
-  requiredSigners: [customer.key_hash], // Aka. extra_signatories
+  requiredSigners: [customer.stake_key_hash], // Aka. extra_signatories
 };
 
 const response = await fetch(`${API_URL}/transactions/build`, {
@@ -55,10 +55,17 @@ const txToSign = result.complete;
 const txToSubmitOnChain = FixedTransaction.from_bytes(
   Buffer.from(txToSign, "hex"),
 );
-// This sign the tx and add vkeys to the txToSubmitOnChain, so in submit we don't need to provide signautres
+// This sign the tx and add vkeys to the txToSubmitOnChain, so in submit we don't need to provide signature
+// // This is an example, in a real application this signature is done on the frontend using the customer wallet.
+// Need to sign with the UTXO key (the payment address that pays the fee).
 txToSubmitOnChain.sign_and_add_vkey_signature(
   PrivateKey.from_bech32(customer.skey),
 );
+// Sign with the stake key to satisfies the required Signers condition in the contract
+txToSubmitOnChain.sign_and_add_vkey_signature(
+  PrivateKey.from_bech32(customer.stake_skey),
+);
+// NOTE: Both signature are usually provided by the frontend wallet.
 
 const urlSubmit = `${API_URL}/transactions/submit`;
 const submitted = await fetch(urlSubmit, {
