@@ -19,13 +19,13 @@ const BODY = {
     },
   ],
 
-  // Optional bounds that determine when the transaction is valid. Can be in POSTIX timestamp or Slot number
+  // Optional bounds that determine when the transaction is valid. Can be in POSIX timestamp or Slot number
   // False can be used to disable a bound.
   // If transactions are submitted outside of the validity interval, they will be rejected.
   // Default if not included will be start now and end 2 hours from now.
   validityInterval: {
-    start: Math.floor(Date.now() / 1000), // POSTIX timestamp for now
-    end: Math.floor(Date.now() / 1000) + (5 * 60 * 60), // POSTIX timestamp 5 hours from now
+    start: Math.floor(Date.now() / 1000), // POSIX timestamp for now
+    end: Math.floor(Date.now() / 1000) + (5 * 60 * 60), // POSIX timestamp 5 hours from now
   },
 };
 
