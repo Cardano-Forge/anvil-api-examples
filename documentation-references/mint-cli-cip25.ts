@@ -22,7 +22,7 @@ const args: {
   counter: number;
   submit: boolean;
 } = parseArgs(Deno.args);
-// deno run -A steps.ts \
+// deno run -A mint-cli-cip25.ts \
 //  --expireDate=2026-01-01 \
 //  --customerWalletPath=customer.json \
 //  --policyWalletPath=policy.json \
@@ -37,8 +37,8 @@ const customerWallet = JSON.parse(
 const policyWallet = JSON.parse(Deno.readTextFileSync(args.policyWalletPath));
 
 // Date before you can interact with the policy
-const slot = dateToSlot(new Date(args.expireDate));
-const keyhash = getKeyhash(policyWallet.skey);
+const slot = await dateToSlot(new Date(args.expireDate));
+const keyhash = getKeyhash(policyWallet.base_address_preprod);
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");
 }
@@ -110,16 +110,21 @@ const data = {
 };
 
 const urlTX = `${API_URL}/transactions/build`;
-const transactionToSignWithPolicyKey = await fetch(urlTX, {
+const transactionToSignWithPolicyKeyResponse = await fetch(urlTX, {
   method: "POST",
   body: JSON.stringify(data),
   headers: HEADERS,
-}).then((res) => res.json());
+});
+
+const transactionToSignWithPolicyKey =
+  await transactionToSignWithPolicyKeyResponse.json();
+console.log(transactionToSignWithPolicyKey);
 
 console.debug(
   "transactionToSignWithPolicyKey: ",
   transactionToSignWithPolicyKey,
 );
+
 //
 // policy signature
 //
@@ -157,22 +162,19 @@ console.debug(
 // Submit tx
 //
 if (args.submit) {
-  const urlSubmit =
-    "https://preprod.api.ada-anvil.app/v2/services/transactions/submit";
+  const urlSubmit = `${API_URL}/transactions/submit`;
 
-  const submitted = await fetch(urlSubmit, {
+  const submittedResponse = await fetch(urlSubmit, {
     method: "POST",
     body: JSON.stringify({
       signatures: [], // This empty because the txToSubmitOnChain has the vkeys
       transaction: txToSubmitOnChain.to_hex(),
     }),
-    headers: {
-      "Content-Type": "application/json",
-      "X-Api-Key": "CgYuz62xAS7EfM0hCP1gz1aOeHlQ4At36pGwnnLf",
-    },
-  }).then((res) => res.json());
+    headers: HEADERS,
+  });
 
-  console.debug(submitted);
+  const submitted = await submittedResponse.json();
+  console.log(submitted);
 } else {
   console.log(txToSubmitOnChain.to_hex());
 }

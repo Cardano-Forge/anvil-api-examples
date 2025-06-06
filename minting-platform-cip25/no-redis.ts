@@ -2,15 +2,15 @@ import { Buffer } from "node:buffer";
 import { randomBytes } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
+import { 
+  getPolicyId,
+  dateToSlot,
+  createPolicyScript,
+} from "../utils/shared.ts";
 import {
   Ed25519KeyHash,
   FixedTransaction,
-  NativeScript,
-  NativeScripts,
   PrivateKey,
-  ScriptAll,
-  ScriptPubkey,
-  TimelockExpiry,
 } from "@emurgo/cardano-serialization-lib-nodejs";
 
 import policyWallet from "./policy.json" with { type: "json" };
@@ -30,7 +30,7 @@ const ANVIL_API_URL = "https://preprod.api.ada-anvil.app/v2/services";
 
 const HEADERS = {
   "Content-Type": "application/json",
-  "X-Api-Key": "CgYuz62xAS7EfM0hCP1gz1aOeHlQ4At36pGwnnLf",
+  "X-Api-Key": "testnet_EyrkvCWDZqjkfLSe1pxaF0hXxUcByHEhHuXIBjt9",
 };
 
 const database: {
@@ -61,42 +61,11 @@ function generateUniqueNFT() {
   return character;
 }
 
-export function dateToSlot(date: Date) {
-  return Math.floor(date.getTime() / 1000) - 1596491091 + 4924800;
-}
 
-export function createPolicyScript(
-  policyKeyHash: string,
-  ttl: number,
-  withTimelock = true,
-): { mintScript: NativeScript; policyTTL: number } {
-  const scripts = NativeScripts.new();
-  const keyHashScript = NativeScript.new_script_pubkey(
-    ScriptPubkey.new(Ed25519KeyHash.from_hex(policyKeyHash)),
-  );
-  scripts.add(keyHashScript);
-
-  const policyTTL: number = ttl;
-
-  if (withTimelock) {
-    const timelock = TimelockExpiry.new(policyTTL);
-    const timelockScript = NativeScript.new_timelock_expiry(timelock);
-    scripts.add(timelockScript);
-  }
-
-  const mintScript = NativeScript.new_script_all(ScriptAll.new(scripts));
-
-  return { mintScript, policyTTL };
-}
-
-export function getPolicyId(mintScript: NativeScript): string {
-  return Buffer.from(mintScript.hash().to_bytes()).toString("hex");
-}
-
-function createOrLoadPolicy() {
-  const slot = dateToSlot(new Date(EXPIRATION_DATE));
+async function createOrLoadPolicy() {
+  const slot = await dateToSlot(new Date(EXPIRATION_DATE));
   const keyHash = policyWallet.key_hash;
-  const policy = createPolicyScript(keyHash, slot, true);
+  const policy = createPolicyScript(Ed25519KeyHash.from_hex(keyHash), slot, true);
 
   return { policy, slot, keyHash };
 }
@@ -168,8 +137,8 @@ async function createTransaction(
 app.post("/mint", async (c: Context) => {
   const { changeAddress, utxos } = await c.req.json();
 
-  const { policy, keyHash, slot } = createOrLoadPolicy();
-  const policyId = getPolicyId(policy.mintScript);
+  const { policy, keyHash, slot } = await createOrLoadPolicy();
+  const policyId = getPolicyId(policy.mint_script);
   const metadata = generateUniqueNFT();
 
   const asset = {
@@ -189,7 +158,7 @@ app.post("/mint", async (c: Context) => {
     quantity: 1,
   };
 
-  database.assetsGenerated.set(metadata.name, metadata);
+  // database.assetsGenerated.set(metadata.name, metadata);
 
   const transaction = await createTransaction(
     changeAddress,
@@ -206,7 +175,7 @@ app.post("/mint", async (c: Context) => {
   database.pendingTx.set(transaction.hash, transaction);
 
   console.log(database.pendingTx);
-  return c.json({ tx: transaction.stripped, hash: transaction.hash }); // rewquired customer signature
+  return c.json({ tx: transaction.stripped, hash: transaction.hash }); // required customer signature
 });
 
 app.post("/submit", async (c: Context) => {
@@ -224,6 +193,11 @@ app.post("/submit", async (c: Context) => {
     transactionToSubmit.sign_and_add_vkey_signature(
       PrivateKey.from_bech32(policyWallet.skey),
     );
+
+    console.log({
+      signatures: [signature], // A1000 returned from weld or whatever
+      transaction: transactionToSubmit.to_hex(),
+    });
 
     const submitted = await fetch(urlSubmit, {
       method: "POST",
@@ -281,26 +255,9 @@ app.get("/", (c: Context) => {
                     <div id="message" />
                 </div>
 
-                <script>
-                    function getAddr() {
-                        const addr = document.getElementById(
-                            "changeAddressBech32",
-                        ).innerHTML;
-                        return addr;
-                    }
-
-                    function getUtxos() {
-                        const utxos = document.getElementById("utxos").innerHTML;
-                        console.debug(utxos, typeof utxos);
-                        const arr = utxos.split(",");
-                        console.debug(arr);
-                        return arr;
-                    }
-                </script>
-
                 <button
                     hx-post="http://localhost:8000/mint"
-                    hx-vals='js:{"changeAddress": getAddr(), "utxos": getUtxos()}'
+                    hx-vals='js:{"changeAddress": Weld.wallet.changeAddressBech32, "utxos": Weld.wallet.utxos}'
                     hx-on::after-request="signAndSubmit(event)"
                     hx-swap="none"
                 >
@@ -345,22 +302,6 @@ app.get("/", (c: Context) => {
                         (balance) => {
                             document.querySelector("#balance").textContent =
                                 balance?.toFixed(2) ?? "-";
-                        },
-                    );
-                    window.Weld.wallet.subscribeWithSelector(
-                        (s) => s.utxos,
-                        (utxos) => {
-                            document.querySelector("#utxos").textContent =
-                                utxos ?? "-";
-                        },
-                    );
-
-                    window.Weld.wallet.subscribeWithSelector(
-                        (s) => s.changeAddressBech32,
-                        (changeAddressBech32) => {
-                            document.querySelector(
-                                "#changeAddressBech32",
-                            ).textContent = changeAddressBech32 ?? "-";
                         },
                     );
 

@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@utxorpc/sdk": "npm:@utxorpc/sdk@^0.6.7",
+    "@emurgo/cardano-serialization-lib-nodejs": "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1"
+  }
+}

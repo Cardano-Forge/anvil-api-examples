@@ -1,9 +1,9 @@
 import { API_URL, HEADERS } from "../utils/constant.ts";
 
 const SENDER_ADDR =
-  "addr_test1qrydyk6uw6cehk5u3zspyz3dhnwzmhfls2fp42vv5dv9g2z3885pg4kpkn30ptezc855lu3w5ey93zcr5lrezjmwkftqg8xvge";
+  "addr_test1qrvx8wgdndrk98qf62vka3q4fglchk7h940vepdtgcv9fuu0e0aeuac6j2xhz77esaaudku68ha89qesqvd29pmuzw6qk8xkcn";
 const RECEIVER_ADDR =
-  "addr_test1qr0tkwvlln0v5fljdxceudmlpt5y6szc84vpj4skm836tgn4hsqaesgg97l8ppy5rsn0alj8pth6lqe20fdyydsdgw6sr74cyt";
+  "addr_test1qztayr885vqrx6w0j946lvtxl622flxx4asj2z4ludm3y2rewu7hmazv8tm78tvphzlream22pp6zhk0rrsa84nf6qxsrua9nh";
 
 // 10 ADA => 1ADA = 1'000'000LOVELACE
 const LOVELACE_AMOUNT = 10_000_000;

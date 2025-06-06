@@ -22,8 +22,8 @@ const metaManagerWallet = JSON.parse(
 const expirationDate = "2026-01-01";
 const counter = new Date().getTime();
 
-const slot = dateToSlot(new Date(expirationDate));
-const keyhash = getKeyhash(policyWallet.skey);
+const slot = await dateToSlot(new Date(expirationDate));
+const keyhash = getKeyhash(policyWallet.base_address_preprod);
 
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");
@@ -56,6 +56,7 @@ const assets: {
   };
   policyId: string;
   quantity: 1;
+  destAddress?: string;
 }[] = [];
 
 const assetMetadataTemplate = {
@@ -80,6 +81,7 @@ assets.push(
     },
     policyId: getPolicyId(policyAnvilApi.mint_script),
     quantity: 1,
+    destAddress: metaManagerWallet.enterprise_address_preprod,
   },
   {
     version: "cip68",
@@ -94,20 +96,14 @@ const data = {
   mint: assets,
   outputs: [
     {
-      address: metaManagerWallet.enterprise_address_preprod,
+      address: customerWallet.enterprise_address_preprod, // optional because same as change.
       assets: [
         {
-          assetName: { name: `anvilapicip68_${counter}`, label: 100 },
-          policyId: getPolicyId(policyAnvilApi.mint_script),
-          quantity: 1,
-        },
-      ],
-    },
-    {
-      address: customerWallet.enterprise_address_preprod,
-      assets: [
-        {
-          assetName: { name: `anvilapicip68_${counter}`, label: 222 },
+          assetName: {
+            name: `anvilapicip68_${counter}`,
+            format: "utf8",
+            label: 222,
+          },
           policyId: getPolicyId(policyAnvilApi.mint_script),
           quantity: 1,
         },

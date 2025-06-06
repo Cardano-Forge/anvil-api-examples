@@ -1,0 +1,26 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@std/cli@*": "1.0.6",
+    "npm:@emurgo/cardano-message-signing-nodejs@*": "1.1.0",
+    "npm:@emurgo/cardano-serialization-lib-nodejs@*": "14.1.1",
+    "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1": "14.1.1",
+    "npm:hono@*": "4.5.11"
+  },
+  "jsr": {
+    "@std/cli@1.0.6": {
+      "integrity": "d22d8b38c66c666d7ad1f2a66c5b122da1704f985d3c47f01129f05abb6c5d3d"
+    }
+  },
+  "npm": {
+    "@emurgo/cardano-message-signing-nodejs@1.1.0": {
+      "integrity": "sha512-PQRc8K8wZshEdmQenNUzVtiI8oJNF/1uAnBhidee5C4o1l2mDLOW+ur46HWHIFKQ6x8mSJTllcjMscHgzju0gQ=="
+    },
+    "@emurgo/cardano-serialization-lib-nodejs@14.1.1": {
+      "integrity": "sha512-UpQzrDOolgssJHeaaMUS+ShDTNBHCnzgKd95G/2Hg9+l8i3zTJ7dlGQDEk/35LgLt8twCHWZDCytrpx7PY12ww=="
+    },
+    "hono@4.5.11": {
+      "integrity": "sha512-62FcjLPtjAFwISVBUshryl+vbHOjg8rE4uIK/dxyR8GpLztunZpwFmfEvmJCUI7xoGh/Sr3CGCDPCmYxVw7wUQ=="
+    }
+  }
+}

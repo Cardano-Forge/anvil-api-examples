@@ -12,11 +12,14 @@ Below is an overview of the examples included:
 
 ## Examples
 
-| Description                                                                                           | Location                   |
-| ----------------------------------------------------------------------------------------------------- | -------------------------- |
-| Simple Minting platform using multi-signature with Redis and a function that generates random NFT. Built using VanillaJS (Deno/Hono/HTMX/Weld) | [./minting-platform-cip25](./minting-platform-cip25)   |
-| "Full Code" examples for the Anvil API documentation website                                          | [./documentation-references](./documentation-references) |
-| Airdrop example using the Anvil API                                                                  | [./airdrop](./airdrop)     |
-| Util functions that are to be transformed into Anvil API Endpoints                                   | [./utils](./utils)         |
+| Description                                                                                                                                    | Location                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Simple Minting platform using multi-signature with Redis and a function that generates random NFT. Built using VanillaJS (Deno/Hono/HTMX/Weld) | [./minting-platform-cip25](./minting-platform-cip25)     |
+| Simple Next.js Minting platform using multi-signature that generates a random NFT. (Next.js/React/Redis/Weld) | [./nextjs-minting-platform-cip25](./nextjs-minting-platform-cip25)   |
+| "Full Code" examples for the Anvil API documentation website                                                                                   | [./documentation-references](./documentation-references) |
+| Airdrop example using the Anvil API                                                                                                            | [./airdrop](./airdrop)                                   |
+| Util functions that are to be transformed into Anvil API Endpoints                                                                             | [./utils](./utils)                                       |
+| Simple Web3 Wallet Authentication using Weld, Deno/Hono                                                                                        | [./web3-auth](./web3-auth)                               |
+
 
 ---
