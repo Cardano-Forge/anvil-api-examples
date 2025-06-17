@@ -30,3 +30,20 @@ console.log("Transaction submission result:", result);
 console.log("Check transaction status on Cardanoscan or similar explorer");
 
 // Run this with: deno run --allow-net submit-tx.ts
+
+/*
+
+Output:
+
+Preparing submission payload...
+Submitting signed transaction...
+Transaction submission result: {
+  result: {
+    data: {
+      txHash: "REAL-TX-HASH"
+    }
+  }
+}
+Check transaction status on Cardanoscan or similar explorer
+
+*/
