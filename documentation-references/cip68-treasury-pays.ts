@@ -71,6 +71,8 @@ const assetMetadataTemplate = {
 
 assets.push(
   {
+    //Reference Token (label: 100) that gets stored on the metamanager wallet
+    //This will be the token that will get udpated to update the metadata
     version: "cip68",
     assetName: { name: `anvilapicip68_${counter}`, format: "utf8", label: 100 },
     metadata: {
@@ -83,6 +85,7 @@ assets.push(
     destAddress: metaManagerWallet.enterprise_address_preprod,
   },
   {
+    //Actual Token (label: 222) that gets stored on the customer wallet
     version: "cip68",
     assetName: { name: `anvilapicip68_${counter}`, format: "utf8", label: 222 },
     policyId: getPolicyId(policyAnvilApi.mint_script),
@@ -91,13 +94,12 @@ assets.push(
   },
 );
 
+// Get UTXOs
 const BLOCKFROST_BASE_URL = "https://cardano-preprod.blockfrost.io/api/v0";
 const BLOCKFROST_PROJECT_ID = Deno.env.get("BLOCKFROST_PROJECT_ID");
-
 if (!BLOCKFROST_PROJECT_ID) {
   throw new Error("Missing BLOCKFROST_PROJECT_ID env var");
 }
-
 const utxos = await getUtxos(
   BLOCKFROST_BASE_URL,
   BLOCKFROST_PROJECT_ID,
@@ -106,11 +108,12 @@ const utxos = await getUtxos(
 
 console.log("utxos", utxos);
 
+// Build Transaction payload
 const data = {
   changeAddress: treasuryWallet.base_address_preprod,
   utxos,
   mint: assets,
-  preloadedScripts: [
+  preloadedScripts: [ //only needed on First mint
     {
       type: "simple",
       script: policyAnvilApiScript,
@@ -121,6 +124,7 @@ const data = {
 
 console.debug("data", data);
 
+// Build Transaction
 const urlTx = `${API_URL}/transactions/build`;
 const response = await fetch(urlTx, {
   method: "POST",
@@ -129,35 +133,35 @@ const response = await fetch(urlTx, {
 });
 
 console.debug(response);
-
 const output = await response.json();
-
 console.log(output);
 
 if (response.status !== 200) {
   throw new Error(`Unable to build tx ${response.statusText}`);
 }
 
-const transactionToSignWithCustomerKey = FixedTransaction.from_bytes(
+// Sign Transaction
+const transaction = FixedTransaction.from_bytes(
   Buffer.from(output.complete, "hex"),
 );
-transactionToSignWithCustomerKey.sign_and_add_vkey_signature(
+
+// Sign with MetaManager wallet
+transaction.sign_and_add_vkey_signature(
   PrivateKey.from_bech32(metaManagerWallet.skey),
 );
 
-const txToSubmitOnChain = FixedTransaction.from_bytes(
-  Buffer.from(transactionToSignWithCustomerKey.to_hex(), "hex"),
-);
-txToSubmitOnChain.sign_and_add_vkey_signature(
+// Sign with Treasury wallet
+transaction.sign_and_add_vkey_signature(
   PrivateKey.from_bech32(treasuryWallet.skey),
 );
 
+// Submit Transaction
 const urlSubmit = `${API_URL}/transactions/submit`;
 const submitted = await fetch(urlSubmit, {
   method: "POST",
   body: JSON.stringify({
     signatures: [],
-    transaction: txToSubmitOnChain.to_hex(),
+    transaction: transaction.to_hex(),
   }),
   headers: HEADERS,
 });

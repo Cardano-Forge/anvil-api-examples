@@ -23,18 +23,14 @@ const metaManagerWallet = JSON.parse(Deno.readTextFileSync("wallet-metaManager.j
 // object example: { name: "anvil-api-1752252143868", format: "utf8", label: 222 }
 const assetName = "000de140616e76696c61706963697036385f31373532323532313433383638";
 
-// VARIABLES
+//get policy simple script varaibles. Usually we wouldn't need these and you can just pass the policy ID from mint. 
 const expirationDate = "2026-01-01";
-
 const slot = await dateToSlot(new Date(expirationDate));
 const keyhash = getKeyhash(policyWallet.base_address_preprod);
-
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");
 }
-
 const policyAnvilApi = createPolicyScript(keyhash, slot);
-
 const policyAnvilApiScript = {
   type: "all",
   scripts: [
@@ -49,23 +45,25 @@ const policyAnvilApiScript = {
   ],
 };
 
+//get utxos for treasury wallet since we need to pay for the transaction
 const BLOCKFROST_BASE_URL = "https://cardano-preprod.blockfrost.io/api/v0";
 const BLOCKFROST_PROJECT_ID = Deno.env.get("BLOCKFROST_PROJECT_ID");
-
 if (!BLOCKFROST_PROJECT_ID) {
   throw new Error("Missing BLOCKFROST_PROJECT_ID env var");
 }
-
 const utxos = await getUtxos(
   BLOCKFROST_BASE_URL,
   BLOCKFROST_PROJECT_ID,
   treasuryWallet.base_address_preprod,
 );
 
+//build transaction payload
 const data = {
   changeAddress: treasuryWallet.base_address_preprod,
   utxos,
-  cip68Updates: [ // Will be updated to cip68MetadataUpdates
+  //automatically handles finding the UTxO output reference for the assiciated asset. 
+  //Adds appropriate inputs and outputs as well as updates the (100) reference token 
+  cip68Updates: [ // Will be updated to cip68MetadataUpdates (soon)
     {
       policyId: getPolicyId(policyAnvilApi.mint_script),
       assetName: assetName,
@@ -77,7 +75,7 @@ const data = {
       action: "update",
     },
   ],
-  preloadedScripts: [
+  preloadedScripts: [ //only needed on First mint
     {
       type: "simple",
       script: policyAnvilApiScript,
@@ -88,6 +86,7 @@ const data = {
 
 console.debug("data", data);
 
+//build transaction
 const urlTx = `${API_URL}/transactions/build`;
 const response = await fetch(urlTx, {
   method: "POST",
@@ -96,9 +95,7 @@ const response = await fetch(urlTx, {
 });
 
 console.debug(response);
-
 const output = await response.json();
-
 console.log(output);
 
 if (response.status !== 200) {
@@ -107,16 +104,19 @@ if (response.status !== 200) {
 
 const transaction = FixedTransaction.from_bytes(
   Buffer.from(output.complete, "hex"),
-);
+);  
 
+//Sign transaction with MetaManager wallet
 transaction.sign_and_add_vkey_signature(
   PrivateKey.from_bech32(metaManagerWallet.skey),
 );
 
+//Sign transaction with Treasury wallet
 transaction.sign_and_add_vkey_signature(
   PrivateKey.from_bech32(treasuryWallet.skey),
 );
 
+//submit transaction
 const urlSubmit = `${API_URL}/transactions/submit`;
 const submitted = await fetch(urlSubmit, {
   method: "POST",
