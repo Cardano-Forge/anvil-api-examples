@@ -56,7 +56,6 @@ const assets: {
   };
   policyId: string;
   quantity: 1;
-  type: "plutus" | "simple";
   destAddress?: string;
 }[] = [];
 
@@ -82,7 +81,6 @@ assets.push(
     },
     policyId: getPolicyId(policyAnvilApi.mint_script),
     quantity: 1,
-    type: "simple",
     destAddress: metaManagerWallet.enterprise_address_preprod,
   },
   {
@@ -90,7 +88,6 @@ assets.push(
     assetName: { name: `anvilapicip68_${counter}`, format: "utf8", label: 222 },
     policyId: getPolicyId(policyAnvilApi.mint_script),
     quantity: 1,
-    type: "simple",
   },
 );
 
