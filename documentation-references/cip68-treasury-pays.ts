@@ -11,12 +11,12 @@ import {
   getPolicyId,
 } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
+import { getUtxos } from "../fetch-utxos-from-the-backend/utxos/blockfrost.ts";
 
-const customerWallet = JSON.parse(Deno.readTextFileSync("customer.json"));
-const policyWallet = JSON.parse(Deno.readTextFileSync("policy-cip68.json"));
-const metaManagerWallet = JSON.parse(
-  Deno.readTextFileSync("meta-manager-cip68.json"),
-);
+const customerWallet = JSON.parse(Deno.readTextFileSync("wallet-customer.json"));
+const treasuryWallet = JSON.parse(Deno.readTextFileSync("wallet-treasury.json"));
+const policyWallet = JSON.parse(Deno.readTextFileSync("wallet-policy.json"));
+const metaManagerWallet = JSON.parse(Deno.readTextFileSync("wallet-metaManager.json"));
 
 // VARIABLES
 const expirationDate = "2026-01-01";
@@ -56,7 +56,6 @@ const assets: {
   };
   policyId: string;
   quantity: 1;
-  type: "plutus" | "simple";
   destAddress?: string;
 }[] = [];
 
@@ -76,13 +75,11 @@ assets.push(
     assetName: { name: `anvilapicip68_${counter}`, format: "utf8", label: 100 },
     metadata: {
       ...assetMetadataTemplate,
-      // Adding custom data just to test the flow
       name: `anvil-api-${counter}`,
-      epoch: new Date().getTime(), // dummy data
+      epoch: new Date().getTime(),
     },
     policyId: getPolicyId(policyAnvilApi.mint_script),
     quantity: 1,
-    type: "simple",
     destAddress: metaManagerWallet.enterprise_address_preprod,
   },
   {
@@ -90,29 +87,29 @@ assets.push(
     assetName: { name: `anvilapicip68_${counter}`, format: "utf8", label: 222 },
     policyId: getPolicyId(policyAnvilApi.mint_script),
     quantity: 1,
-    type: "simple",
+    destAddress: customerWallet.enterprise_address_preprod,
   },
 );
 
+const BLOCKFROST_BASE_URL = "https://cardano-preprod.blockfrost.io/api/v0";
+const BLOCKFROST_PROJECT_ID = Deno.env.get("BLOCKFROST_PROJECT_ID");
+
+if (!BLOCKFROST_PROJECT_ID) {
+  throw new Error("Missing BLOCKFROST_PROJECT_ID env var");
+}
+
+const utxos = await getUtxos(
+  BLOCKFROST_BASE_URL,
+  BLOCKFROST_PROJECT_ID,
+  treasuryWallet.base_address_preprod,
+);
+
+console.log("utxos", utxos);
+
 const data = {
-  changeAddress: customerWallet.enterprise_address_preprod,
+  changeAddress: treasuryWallet.base_address_preprod,
+  utxos,
   mint: assets,
-  outputs: [
-    {
-      address: customerWallet.enterprise_address_preprod, // optional because same as change.
-      assets: [
-        {
-          assetName: {
-            name: `anvilapicip68_${counter}`,
-            format: "utf8",
-            label: 222,
-          },
-          policyId: getPolicyId(policyAnvilApi.mint_script),
-          quantity: 1,
-        },
-      ],
-    },
-  ],
   preloadedScripts: [
     {
       type: "simple",
@@ -145,14 +142,14 @@ const transactionToSignWithCustomerKey = FixedTransaction.from_bytes(
   Buffer.from(output.complete, "hex"),
 );
 transactionToSignWithCustomerKey.sign_and_add_vkey_signature(
-  PrivateKey.from_bech32(policyWallet.skey),
+  PrivateKey.from_bech32(metaManagerWallet.skey),
 );
 
 const txToSubmitOnChain = FixedTransaction.from_bytes(
   Buffer.from(transactionToSignWithCustomerKey.to_hex(), "hex"),
 );
 txToSubmitOnChain.sign_and_add_vkey_signature(
-  PrivateKey.from_bech32(customerWallet.skey),
+  PrivateKey.from_bech32(treasuryWallet.skey),
 );
 
 const urlSubmit = `${API_URL}/transactions/submit`;
