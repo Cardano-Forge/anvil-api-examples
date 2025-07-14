@@ -1,8 +1,8 @@
-policy.json
-treasury.json
+treasury*.json
 customer.json
-policy-*.json
-meta-manager-*.json
+policy*.json
+meta-manager*.json
+wallet-*.json
 
 airdrop/wallets/customer_*.json
 .DS_Store

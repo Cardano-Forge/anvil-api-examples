@@ -12,7 +12,7 @@ import {
   BigNum,
   ScriptHash,
   Address,
-} from "@emurgo/cardano-serialization-lib-nodejs";
+} from "npm:@emurgo/cardano-serialization-lib-nodejs";
 
 export function hex_to_uint8(input: string): Uint8Array {
   return new Uint8Array(Buffer.from(input, "hex"));
@@ -65,12 +65,14 @@ export type Utxo = {
   inline_datum?: string | null;
   reference_script_hash?: string | null;
 };
-export async function get_utxos_api(
-  blockfrost_base_url: string,
+export async function getUtxos(  blockfrost_base_url: string,
   blockfrost_api_key: string,
-  address: string,
-): Promise<Utxo[]> {
-  const get = async (data: object[] = [], page = 1) => {
+  address: string,): Promise<string[]> {
+  const utxoHexList: string[] = [];
+  let page = 1;
+
+  // Loop through paginated results from Blockfrost
+  while (true) {
     const res = await fetch(
       `${blockfrost_base_url}/addresses/${address}/utxos?page=${page}`,
       {
@@ -83,50 +85,37 @@ export async function get_utxos_api(
       },
     );
 
-    if (res.status < 199 || res.status > 200) {
-      throw new Error("Unable to get utxos for specified address");
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(
+        `Unable to get utxos for specified address. Status: ${res.status}, Response: ${errorText}`,
+      );
     }
 
-    const json = await res.json();
-    if (json.length > 0) {
-      return await get([...data, ...json], page + 1);
+    const pageUtxos: Utxo[] = await res.json();
+
+    // If the page is empty, we've fetched all UTXOs.
+    if (pageUtxos.length === 0) {
+      break;
     }
 
-    return [...data, ...json];
-  };
+    // Process the UTXOs from the current page immediately to save memory.
+    for (const utxo of pageUtxos) {
+      const multi_assets = MultiAsset.new();
+      const { tx_hash, output_index, amount, address } = utxo;
 
-  return await get();
+      const txUnspentOutput = TransactionUnspentOutput.new(
+        TransactionInput.new(TransactionHash.from_hex(tx_hash), output_index),
+        TransactionOutput.new(
+          Address.from_bech32(address),
+          assets_to_value(multi_assets, amount),
+        ),
+      );
+      utxoHexList.push(txUnspentOutput.to_hex());
+    }
+
+    page++;
+  }
+
+  return utxoHexList;
 }
-
-console.time("blockfrost");
-const utxos = await get_utxos_api(
-  "https://cardano-mainnet.blockfrost.io/api/v0",
-  Deno.env.get("BLOCKFROST_PROJECT_ID"),
-  "addr1q96gmvs93t96txjv43sw5gtf6pfzwmsu07t635pmlvwsucup2645cqyrknctcsd3s4e6wc23fxqsr3mywdlx9lnme6sshlyndu",
-);
-console.timeEnd("blockfrost");
-console.log("UTXOs Found:", utxos.length);
-
-const parsedUtxo: TransactionUnspentOutputs = TransactionUnspentOutputs.new();
-
-console.time("build_utxo_blockfrost");
-for (const utxo of utxos) {
-  const multi_assets = MultiAsset.new();
-  const { tx_hash, output_index, amount, address } = utxo as Utxo;
-
-  // If we have enough utxos, we can proceed.
-  parsedUtxo.add(
-    TransactionUnspentOutput.new(
-      TransactionInput.new(TransactionHash.from_hex(tx_hash), output_index),
-      TransactionOutput.new(
-        Address.from_bech32(address),
-        assets_to_value(multi_assets, amount),
-      ),
-    ),
-  );
-}
-console.timeEnd("build_utxo_blockfrost");
-
-// console.log("Parsed UTXO", parsedUtxo.to_json());
-
-Deno.exit(0);
