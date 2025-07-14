@@ -63,7 +63,7 @@ const data = {
   utxos,
   //automatically handles finding the UTxO output reference for the assiciated asset. 
   //Adds appropriate inputs and outputs as well as updates the (100) reference token 
-  cip68Updates: [ // Will be updated to cip68MetadataUpdates (soon)
+  cip68MetadataUpdates: [
     {
       policyId: getPolicyId(policyAnvilApi.mint_script),
       assetName: assetName,

@@ -1,4 +1,5 @@
-// deno run --allow-net --allow-read cip68.ts
+// deno run --allow-all --env-file=.env cip68.ts
+// Required environment variables: BLOCKFROST_PROJECT_ID, ANVIL_API_KEY
 import { Buffer } from "node:buffer";
 import {
   FixedTransaction,
