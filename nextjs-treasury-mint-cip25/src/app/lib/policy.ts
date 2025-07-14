@@ -9,18 +9,35 @@ import {
   TimelockExpiry,
 } from "@emurgo/cardano-serialization-lib-asmjs-gc";
 
-const { POLICY_KEY_HASH, POLICY_EXPIRATION_DATE } = process.env;
+const { POLICY_KEY_HASH, POLICY_EXPIRATION_DATE, ANVIL_API_URL, ANVIL_API_KEY } = process.env;
+const API_URL = ANVIL_API_URL || "https://preprod.api.ada-anvil.app/v2/services";
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'X-Api-Key': ANVIL_API_KEY || "",
+};
 
 /**
- * Convert a date to a Cardano slot number
+ * Convert a date to a Cardano slot number via Anvil API
  */
-export async function dateToSlot(date: Date): Promise<number> {
-  // Current slot number (1655683200) is for PreProd network. Update your value accordingly.
-  // Mainnet: 1591566291
-  // Preview: 1666656182
-  // Preprod: 1655683200
-  const currentSlot = 1655683200 + 4924800;
-  return Math.floor(date.getTime() / 1000) - currentSlot;
+export async function dateToSlot(date: Date) {
+  try {
+    const timeInMilliseconds = date.getTime();
+    const response = await fetch(`${API_URL}/utils/network/time-to-slot`, {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({ time: timeInMilliseconds }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Network response was not ok: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.slot;
+  } catch (error) {
+    console.error('Error in dateToSlot:', error);
+    throw error;
+  }
 }
 
 /**
