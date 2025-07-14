@@ -1,0 +1,97 @@
+{
+  "preamble": {
+    "title": "anvil-api-examples/hello-world",
+    "description": "Aiken contracts for project 'anvil-api-examples/hello-world'",
+    "version": "0.0.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.17+c3a7fba"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "hello_world.hello_world.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/hello_world~1Datum"
+        }
+      },
+      "redeemer": {
+        "title": "redeemer",
+        "schema": {
+          "$ref": "#/definitions/hello_world~1Redeemer"
+        }
+      },
+      "parameters": [
+        {
+          "title": "expected_msg",
+          "schema": {
+            "$ref": "#/definitions/ByteArray"
+          }
+        }
+      ],
+      "compiledCode": "58fc010100229800aba2aba1aab9faab9eaab9dab9a9bae002488888896600264646644b30013370e900118039baa00189919912cc004cdc3a400060146ea801626464b300130100028acc004cdc3a400060186ea800e2b30013371e6eb8c03cc034dd500380544c8cc88cc008008004896600200314a115980099b8f375c602400200714a3133002002301300140388088dd618081808980898089808980898089808980898071baa301000a375c601e601a6ea8c03cc034dd5001c52820168b20168b201c375c601c00260166ea80162c8048c02c004c02cc030004c020dd5000c59006180400098041804800980400098021baa0088a4d13656400801",
+      "hash": "333158938654b6e69ce1349aeeadcff7fdc0c285f3102b8697a1e173"
+    },
+    {
+      "title": "hello_world.hello_world.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "parameters": [
+        {
+          "title": "expected_msg",
+          "schema": {
+            "$ref": "#/definitions/ByteArray"
+          }
+        }
+      ],
+      "compiledCode": "58fc010100229800aba2aba1aab9faab9eaab9dab9a9bae002488888896600264646644b30013370e900118039baa00189919912cc004cdc3a400060146ea801626464b300130100028acc004cdc3a400060186ea800e2b30013371e6eb8c03cc034dd500380544c8cc88cc008008004896600200314a115980099b8f375c602400200714a3133002002301300140388088dd618081808980898089808980898089808980898071baa301000a375c601e601a6ea8c03cc034dd5001c52820168b20168b201c375c601c00260166ea80162c8048c02c004c02cc030004c020dd5000c59006180400098041804800980400098021baa0088a4d13656400801",
+      "hash": "333158938654b6e69ce1349aeeadcff7fdc0c285f3102b8697a1e173"
+    }
+  ],
+  "definitions": {
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "aiken/crypto/VerificationKeyHash": {
+      "title": "VerificationKeyHash",
+      "dataType": "bytes"
+    },
+    "hello_world/Datum": {
+      "title": "Datum",
+      "anyOf": [
+        {
+          "title": "Datum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "owner",
+              "$ref": "#/definitions/aiken~1crypto~1VerificationKeyHash"
+            }
+          ]
+        }
+      ]
+    },
+    "hello_world/Redeemer": {
+      "title": "Redeemer",
+      "anyOf": [
+        {
+          "title": "Redeemer",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "msg",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
