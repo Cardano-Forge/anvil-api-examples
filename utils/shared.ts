@@ -1,16 +1,5 @@
 // This file contains utility functions that will be moved in anvil-api as endpoints
-
 import { Buffer } from "node:buffer";
-import {
-  Address,
-  BaseAddress,
-  type Ed25519KeyHash,
-  NativeScript,
-  NativeScripts,
-  ScriptAll,
-  ScriptPubkey,
-  TimelockExpiry,
-} from "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1";
 
 import { API_URL, HEADERS } from "./constant.ts";
 
@@ -35,40 +24,77 @@ export async function dateToSlot(date: Date) {
   }
 }
 
-export function getKeyhash(bech32Address: string): Ed25519KeyHash | undefined {
-  return BaseAddress.from_address(Address.from_bech32(bech32Address))
-    ?.payment_cred()
-    .to_keyhash();
-}
+export async function getKeyhash(bech32Address: string): Promise<string | undefined> {
+  const response = await fetch(`${API_URL}/utils/addresses/parse`, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify({ address: bech32Address }),
+  });
 
-export function createPolicyScript(
-  policy_key_hash: Ed25519KeyHash,
-  ttl: number,
-  with_timelock = true,
-): { mint_script: NativeScript; policy_ttl: number } {
-  const scripts = NativeScripts.new();
-  const key_hash_script = NativeScript.new_script_pubkey(
-    ScriptPubkey.new(policy_key_hash),
-  );
-  scripts.add(key_hash_script);
-
-  const policy_ttl: number = ttl;
-
-  if (with_timelock) {
-    const timelock = TimelockExpiry.new(policy_ttl);
-    const timelock_script = NativeScript.new_timelock_expiry(timelock);
-    scripts.add(timelock_script);
+  if (!response.ok) {
+    console.error(`Failed to get key hash for address: ${bech32Address}`);
+    return undefined;
   }
 
-  const mint_script = NativeScript.new_script_all(ScriptAll.new(scripts));
+  const { payment } = await response.json();
+  return payment;
+}
 
-  return { mint_script, policy_ttl };
+export async function createPolicyScript(
+  keyHash: string,
+  ttl: number,
+  with_timelock = true,
+): Promise<{ type: string; script: object; hash: string }> {
+  const baseScript = { type: "sig", keyHash };
+  let policyScriptSchema: any;
+
+  if (with_timelock) {
+    policyScriptSchema = {
+      type: "all",
+      scripts: [baseScript, { type: "before", slot: ttl }],
+    };
+  } else {
+    policyScriptSchema = baseScript;
+  }
+
+  const body = JSON.stringify({ schema: policyScriptSchema });
+
+  const response = await fetch(`${API_URL}/utils/native-scripts/serialize`, {
+    method: "POST",
+    headers: HEADERS,
+    body,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create policy script: ${await response.text()}`);
+  }
+
+  const { policyId } = await response.json();
+
+  return {
+    type: "simple",
+    script: policyScriptSchema,
+    hash: policyId,
+  };
 }
 
 export function bytesToHex(input: Uint8Array): string {
   return Buffer.from(input).toString("hex");
 }
 
-export function getPolicyId(mint_script: NativeScript): string {
-  return bytesToHex(mint_script.hash().to_bytes());
+export async function getPolicyId(hexScript: string): Promise<string> {
+  const response = await fetch(`${API_URL}/utils/native-scripts/parse`,
+    {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({ script: hexScript }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to parse policy script: ${await response.text()}`);
+  }
+
+  const { policyId } = await response.json();
+  return policyId;
 }

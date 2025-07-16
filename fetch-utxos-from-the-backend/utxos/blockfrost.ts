@@ -65,7 +65,8 @@ export type Utxo = {
   inline_datum?: string | null;
   reference_script_hash?: string | null;
 };
-export async function getUtxos(  blockfrost_base_url: string,
+export async function getUtxos(  
+  blockfrost_base_url: string,
   blockfrost_api_key: string,
   address: string,): Promise<string[]> {
   const utxoHexList: string[] = [];
