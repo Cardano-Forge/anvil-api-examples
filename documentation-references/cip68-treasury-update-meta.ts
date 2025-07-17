@@ -25,7 +25,7 @@ import {
   PrivateKey,
 } from "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1";
 import {
-  createPolicyScript,
+  createNativeScript,
   dateToSlot,
   getKeyhash,
 } from "../utils/shared.ts";
@@ -42,7 +42,7 @@ const metaManagerWallet = JSON.parse(Deno.readTextFileSync("wallet-meta-manager.
 // The API will automatically find the reference (100) token to update.
 const assetName = "000643b0616e76696c61706963697036385f31373532373032393939373838";
 
-// The policy script is needed to be pre-loaded for the API to validate the transaction.
+// The native script is needed to be pre-loaded for the API to validate the transaction.
 // In a real-world scenario, you might just have the policy ID if it's already on-chain.
 const expirationDate = "2026-01-01";
 const slot = await dateToSlot(new Date(expirationDate));
@@ -50,7 +50,7 @@ const keyhash = await getKeyhash(policyWallet.base_address_preprod);
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy wallet.");
 }
-const policyScript = await createPolicyScript(keyhash, slot);
+const nativeScript = await createNativeScript(keyhash, slot);
 
 // 3. Fetch Treasury UTXOs
 const BLOCKFROST_PROJECT_ID = Deno.env.get("BLOCKFROST_PROJECT_ID");
@@ -70,7 +70,7 @@ const buildBody = {
   utxos,
   cip68MetadataUpdates: [
     {
-      policyId: policyScript.hash,
+      policyId: nativeScript.hash,
       assetName: assetName,
       metadata: {
         name: "New Updated Name",
@@ -83,8 +83,8 @@ const buildBody = {
   preloadedScripts: [
     {
       type: "simple",
-      script: policyScript.script,
-      hash: policyScript.hash,
+      script: nativeScript.script,
+      hash: nativeScript.hash,
     },
   ],
 };

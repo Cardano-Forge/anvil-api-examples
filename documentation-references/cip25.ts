@@ -6,7 +6,7 @@
  *
  * This involves:
  * 1. Loading a customer wallet (to pay for fees) and a policy wallet (to sign the policy).
- * 2. Creating a time-locked policy script that expires in the future.
+ * 2. Creating a time-locked native script that expires in the future.
  * 3. Defining the asset metadata according to the CIP-25 standard.
  * 4. Building the transaction payload with the minting details.
  * 5. Building the transaction via the Anvil API.
@@ -25,21 +25,21 @@
 
 import { Buffer } from "node:buffer";
 import { FixedTransaction, PrivateKey } from "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1";
-import { createPolicyScript, dateToSlot, getKeyhash } from "../utils/shared.ts";
+import { createNativeScript, dateToSlot, getKeyhash } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
 
 // 1. Load wallets
 const customerWallet = JSON.parse(Deno.readTextFileSync("wallet-customer.json"));
 const policyWallet   = JSON.parse(Deno.readTextFileSync("wallet-policy.json"));
 
-// 2. Create simple policy script (expires 2026-01-01)
+// 2. Create native script (expires 2026-01-01)
 const slot = await dateToSlot(new Date("2026-01-01"));
 
 // 2.1. Get keyhash of policy wallet
 const keyhash = await getKeyhash(policyWallet.base_address_preprod);
 
-// 2.2. Create policy script
-const policyScript = await createPolicyScript(keyhash!, slot);
+// 2.2. Create native script
+const nativeScript = await createNativeScript(keyhash!, slot);
 
 // 3. Prepare mint payload (single NFT, counter based on timestamp for uniqueness)
 const counter = Date.now();
@@ -50,7 +50,7 @@ const assets = [{
     ...(JSON.parse(Deno.readTextFileSync("metatemplate.json"))),
     name: `anvil-api-${counter}`,
   },
-  policyId: policyScript.hash,
+  policyId: nativeScript.hash,
   quantity: 1,
 }];
 
@@ -58,7 +58,7 @@ const assets = [{
 const buildBody = {
   changeAddress: customerWallet.base_address_preprod,
   mint: assets,
-  preloadedScripts: [policyScript],
+  preloadedScripts: [nativeScript],
 };
 
 console.log("Build Body: ", buildBody);

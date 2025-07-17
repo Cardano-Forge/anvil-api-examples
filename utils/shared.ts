@@ -40,7 +40,7 @@ export async function getKeyhash(bech32Address: string): Promise<string | undefi
   return payment;
 }
 
-export async function createPolicyScript(
+export async function createNativeScript(
   keyHash: string,
   ttl: number,
   with_timelock = true,
@@ -66,7 +66,8 @@ export async function createPolicyScript(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to create policy script: ${await response.text()}`);
+    const errorText = await response.text();
+    throw new Error(`API call failed: ${errorText}`);
   }
 
   const { policyId } = await response.json();
@@ -92,7 +93,7 @@ export async function getPolicyId(hexScript: string): Promise<string> {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to parse policy script: ${await response.text()}`);
+    throw new Error(`Failed to parse native script: ${await response.text()}`);
   }
 
   const { policyId } = await response.json();

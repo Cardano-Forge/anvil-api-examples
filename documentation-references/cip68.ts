@@ -6,7 +6,7 @@
  *
  * This involves:
  * 1. Loading customer, policy, and metadata manager wallets.
- * 2. Creating a time-locked policy script signed by the policy wallet.
+ * 2. Creating a time-locked native script signed by the policy wallet.
  * 3. Defining the asset metadata for both the reference and user tokens according to the CIP-68 standard.
  * 4. Building the transaction payload with the minting details.
  * 5. Building the transaction via the Anvil API.
@@ -31,7 +31,7 @@ import {
 import {
   dateToSlot,
   getKeyhash,
-  createPolicyScript,
+  createNativeScript,
 } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
 
@@ -40,7 +40,7 @@ const customerWallet = JSON.parse(Deno.readTextFileSync("wallet-customer.json"))
 const policyWallet = JSON.parse(Deno.readTextFileSync("wallet-policy.json"));
 const metaManagerWallet = JSON.parse(Deno.readTextFileSync("wallet-meta-manager.json"));
 
-// 2. Create simple policy script (expires 2026-01-01 signed by policy wallet)
+// 2. Create native script (expires 2026-01-01 signed by policy wallet)
 const slot = await dateToSlot(new Date("2026-01-01"));
 
 // 2.1. Get keyhash of policy wallet
@@ -49,8 +49,8 @@ if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");
 }
 
-// 2.2. Create policy script
-const policyScript = await createPolicyScript(keyhash, slot);
+// 2.2. Create native script
+const nativeScript = await createNativeScript(keyhash, slot);
 
 // 3. Prepare mint payload
 const counter = new Date().getTime();
@@ -83,7 +83,7 @@ assets.push(
       mediaType: "image/png",
       description: "Testing CIP-68 using anvil API",
     },
-    policyId: policyScript.hash,
+    policyId: nativeScript.hash,
     quantity: 1,
     destAddress: metaManagerWallet.base_address_preprod,
   },
@@ -91,7 +91,7 @@ assets.push(
     // User Token - Label 222 -> Customer Address
     version: "cip68",
     assetName: { name: `anvilapicip68_${counter}`, format: "utf8", label: 222 },
-    policyId: policyScript.hash,
+    policyId: nativeScript.hash,
     quantity: 1,
     destAddress: customerWallet.base_address_preprod,
   },
@@ -101,7 +101,7 @@ assets.push(
 const buildBody = {
   changeAddress: customerWallet.base_address_preprod,
   mint: assets,
-  preloadedScripts: [policyScript],
+  preloadedScripts: [nativeScript],
 };
 
 console.log("Build Body: ", buildBody);

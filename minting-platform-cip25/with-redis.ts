@@ -4,9 +4,8 @@ import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { createClient } from "redis";
 import { 
-  createPolicyScript,
+  createNativeScript,
   dateToSlot,
-  getPolicyId 
 } from "../utils/shared.ts";
 import {
   FixedTransaction,
@@ -58,8 +57,11 @@ function generateUniqueNFT() {
 
 async function createOrLoadPolicy() {
   const slot = await dateToSlot(new Date(EXPIRATION_DATE));
-  const keyHash = policyWallet.key_hash;
-  const policy = createPolicyScript(Ed25519KeyHash.from_hex(keyHash), slot, true);
+  const keyHash = await getKeyhash(policyWallet.base_address_preprod);
+  if (!keyHash) {
+    throw new Error("Unable to get key hash for policy, missing or invalid skey");
+  }
+  const policy = await createNativeScript(keyHash, slot);
 
   return { policy, slot, keyHash };
 }
@@ -67,9 +69,7 @@ async function createOrLoadPolicy() {
 async function createTransaction(
   changeAddress: string,
   asset: object,
-  keyHash: string,
-  slot: number,
-  policyId: string,
+  policy: object,
 ) {
   const data = {
     changeAddress: changeAddress,
@@ -90,25 +90,7 @@ async function createTransaction(
         ],
       },
     ],
-    preloadedScripts: [
-      {
-        type: "simple",
-        script: {
-          type: "all",
-          scripts: [
-            {
-              type: "sig",
-              keyHash: keyHash,
-            },
-            {
-              type: "before",
-              slot: slot,
-            },
-          ],
-        },
-        hash: policyId,
-      },
-    ],
+    preloadedScripts: [policy],
   };
 
   console.debug(data);
@@ -129,8 +111,7 @@ async function createTransaction(
 app.post("/mint", async (c: Context) => {
   const { changeAddress, utxos } = await c.req.json();
 
-  const { policy, keyHash, slot } = await createOrLoadPolicy();
-  const policyId = getPolicyId(policy.mint_script);
+  const { policy } = await createOrLoadPolicy();
   const metadata = generateUniqueNFT();
 
   const asset = {
@@ -147,7 +128,7 @@ app.post("/mint", async (c: Context) => {
       description: "Minting Platform Example using Anvil API",
       attributes: metadata.attributes,
     },
-    policyId,
+    policyId: policy.hash,
     quantity: 1,
   };
 
@@ -156,9 +137,7 @@ app.post("/mint", async (c: Context) => {
   const transaction = await createTransaction(
     changeAddress,
     asset,
-    keyHash,
-    slot,
-    policyId,
+    policy,
   );
 
   console.debug(transaction);
