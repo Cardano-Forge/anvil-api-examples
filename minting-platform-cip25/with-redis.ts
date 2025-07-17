@@ -10,7 +10,6 @@ import {
 import {
   FixedTransaction,
   PrivateKey,
-  Ed25519KeyHash,
 } from "@emurgo/cardano-serialization-lib-nodejs";
 
 import policyWallet from "./policy.json" with { type: "json" };
