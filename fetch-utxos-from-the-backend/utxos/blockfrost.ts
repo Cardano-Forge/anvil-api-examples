@@ -4,7 +4,6 @@ import {
   TransactionInput,
   TransactionOutput,
   TransactionHash,
-  TransactionUnspentOutputs,
   MultiAsset,
   Value,
   Assets,
@@ -65,7 +64,8 @@ export type Utxo = {
   inline_datum?: string | null;
   reference_script_hash?: string | null;
 };
-export async function getUtxos(  
+
+export async function getUtxos(
   blockfrost_base_url: string,
   blockfrost_api_key: string,
   address: string,): Promise<string[]> {
@@ -99,8 +99,8 @@ export async function getUtxos(
     if (pageUtxos.length === 0) {
       break;
     }
-
-    // Process the UTXOs from the current page immediately to save memory.
+    
+    // Convert UTXOs to array of CBOR hex strings
     for (const utxo of pageUtxos) {
       const multi_assets = MultiAsset.new();
       const { tx_hash, output_index, amount, address } = utxo;
@@ -119,4 +119,112 @@ export async function getUtxos(
   }
 
   return utxoHexList;
+}
+
+// Function to find CIP-68 reference token  (label 100) UTXO dynamically from script address
+export async function findReferenceTokenUTXO(
+  blockfrost_base_url: string,
+  blockfrost_api_key: string,
+  policyId: string,
+  baseAssetName: string,
+  scriptAddress: string,
+): Promise<{ transaction_id: string; output_index: number }> {
+  
+  // Fetch all UTXOs from script address
+  const response = await fetch(
+    `${blockfrost_base_url}/addresses/${scriptAddress}/utxos`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        project_id: blockfrost_api_key,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch UTXOs: ${response.status} ${response.statusText}. Details: ${errorText}`);
+  }
+
+  const utxos: Utxo[] = await response.json();
+  
+  // CIP-68 reference token has label 100 (full CIP-67 format: 000643b0)
+  const referenceTokenLabel = "000643b0"; // 100 with CRC-8 checksum per CIP-67
+  const expectedAssetUnit = `${policyId}${referenceTokenLabel}${Buffer.from(baseAssetName).toString("hex")}`;
+  
+  // Find UTXO containing the reference token
+  for (const utxo of utxos) {
+    for (const asset of utxo.amount) {
+      if (asset.unit === expectedAssetUnit && parseInt(asset.quantity) > 0) {
+        return {
+          transaction_id: utxo.tx_hash,
+          output_index: utxo.output_index,
+        };
+      }
+    }
+  }
+  
+  throw new Error(
+    `❌ Reference token not found at script address.\n` +
+    `Expected asset: ${expectedAssetUnit}\n` +
+    `Policy ID: ${policyId}\n` +
+    `Base asset name: ${baseAssetName}\n` +
+    `Script address: ${scriptAddress}`
+  );
+}
+
+// Function to find CIP-68 user token (label 222) UTXO dynamically from customer's wallet
+export async function findUserTokenUTXO(
+  blockfrost_base_url: string,
+  blockfrost_api_key: string,
+  policyId: string,
+  baseAssetName: string,
+  customerAddress: string
+): Promise<{ transaction_id: string; output_index: number }> {
+  
+  // Fetch all UTXOs from customer's address
+  const response = await fetch(
+    `${blockfrost_base_url}/addresses/${customerAddress}/utxos`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        project_id: blockfrost_api_key,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch UTXOs: ${response.status} ${response.statusText}. Details: ${errorText}`);
+  }
+
+  const utxos: Utxo[] = await response.json();
+  
+  // CIP-68 user token has label 222 (full CIP-67 format: 000de140)
+  const userTokenLabel = "000de140"; // 222 with CRC-8 checksum per CIP-67
+  const expectedAssetUnit = `${policyId}${userTokenLabel}${Buffer.from(baseAssetName).toString("hex")}`;
+  
+  // Find UTXO containing the user token
+  for (const utxo of utxos) {
+    for (const asset of utxo.amount) {
+      if (asset.unit === expectedAssetUnit && parseInt(asset.quantity) > 0) {
+        return {
+          transaction_id: utxo.tx_hash,
+          output_index: utxo.output_index,
+        };
+      }
+    }
+  }
+  
+  throw new Error(
+    `❌ User token not found in wallet.\n` +
+    `Expected asset: ${expectedAssetUnit}\n` +
+    `Policy ID: ${policyId}\n` +
+    `Base asset name: ${baseAssetName}\n` +
+    `Customer address: ${customerAddress}`
+  );
 }
