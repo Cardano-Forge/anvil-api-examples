@@ -6,10 +6,9 @@ import {
 import { parseArgs } from "jsr:@std/cli/parse-args";
 
 import {
-  createPolicyScript,
+  createNativeScript,
   dateToSlot,
   getKeyhash,
-  getPolicyId,
 } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
 
@@ -38,29 +37,11 @@ const policyWallet = JSON.parse(Deno.readTextFileSync(args.policyWalletPath));
 
 // Date before you can interact with the policy
 const slot = await dateToSlot(new Date(args.expireDate));
-const keyhash = getKeyhash(policyWallet.base_address_preprod);
+const keyhash = await getKeyhash(policyWallet.base_address_preprod);
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");
 }
-const policyAnvilApi = createPolicyScript(keyhash, slot);
-
-//
-// CUSTOM FOR EACH MINT COLLECTION
-//
-// not the best way to handle this, a config file would be better
-const policyAnvilApiScript = {
-  type: "all",
-  scripts: [
-    {
-      type: "sig",
-      keyHash: keyhash.to_hex(),
-    },
-    {
-      type: "before",
-      slot: slot,
-    },
-  ],
-};
+const nativeScript = await createNativeScript(keyhash, slot);
 
 const assets: {
   version: string;
@@ -90,7 +71,7 @@ assets.push({
     name: `anvil-api-${counter}`,
     epoch: new Date().getTime(), // dummy data
   },
-  policyId: getPolicyId(policyAnvilApi.mint_script),
+  policyId: nativeScript.hash,
   quantity: 1,
 });
 
@@ -103,8 +84,8 @@ const data = {
   preloadedScripts: [
     {
       type: "simple",
-      script: policyAnvilApiScript,
-      hash: getPolicyId(policyAnvilApi.mint_script),
+      script: nativeScript.script,
+      hash: nativeScript.hash,
     },
   ],
 };
