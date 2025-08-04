@@ -3,7 +3,7 @@
 import { FixedTransaction, PrivateKey } from "@emurgo/cardano-serialization-lib-asmjs-gc";
 import { randomBytes } from 'node:crypto';
 
-const { ANVIL_API_URL, ANVIL_API_KEY } = process.env;
+const { ANVIL_API_URL, ANVIL_API_KEY, POLICY_KEY_HASH, POLICY_EXPIRATION_DATE } = process.env;
 
 // Define interfaces for the asset types
 interface AssetAttribute {
@@ -198,3 +198,108 @@ export async function submitTransaction(transaction: { complete: string }) {
     throw error;
   }
 }
+
+/**
+ * Convert a DateTime to a Cardano slot number via Anvil API
+ */
+export async function timeToSlot(date: Date) {
+  if (!ANVIL_API_URL || !ANVIL_API_KEY) {
+    throw new Error('Anvil API URL or key not found in environment variables');
+  }
+
+  try {
+    const timeInMilliseconds = date.getTime();
+    const response = await fetch(`${ANVIL_API_URL}/utils/network/time-to-slot`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ time: timeInMilliseconds }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Network response was not ok: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.slot;
+  } catch (error) {
+    console.error('Error in dateToSlot:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a native script using Anvil's serialization endpoint
+ */
+export async function createNativeScript(
+  keyHash: string,
+  ttl: number,
+  with_timelock = true,
+): Promise<{ type: string; script: object; hash: string }> {
+  if (!ANVIL_API_URL || !ANVIL_API_KEY) {
+    throw new Error('Anvil API URL or key not found in environment variables');
+  }
+
+  const baseScript = { type: "sig" as const, keyHash };
+  let policyScriptSchema: 
+    | { type: "sig", keyHash: string }
+    | { type: "all", scripts: Array<{ type: "sig", keyHash: string } | { type: "before", slot: number }> };
+
+  if (with_timelock) {
+    policyScriptSchema = {
+      type: "all",
+      scripts: [baseScript, { type: "before", slot: ttl }],
+    };
+  } else {
+    policyScriptSchema = baseScript;
+  }
+
+  const body = JSON.stringify({ schema: policyScriptSchema });
+
+  const response = await fetch(`${ANVIL_API_URL}/utils/native-scripts/serialize`, {
+    method: "POST",
+    headers: getHeaders(),
+    body,
+  });
+
+  console.log("Response: ", response);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API call failed: ${errorText}`);
+  }
+
+  const { policyId } = await response.json();
+
+  return {
+    type: "simple",
+    script: policyScriptSchema,
+    hash: policyId,
+  };
+}
+
+/**
+ * Create or load policy configuration 
+ * 
+ * This function establishes the constraints for token minting:
+ * - keyHash: Controls who can sign minting transactions
+ * - slot: Defines the blockchain slot after which no more tokens can be minted
+ * - policyId: A unique identifier derived from the policy script that permanently
+ *   identifies all tokens minted under this policy
+ */
+export async function createOrLoadPolicy() {
+  if (!POLICY_EXPIRATION_DATE || !POLICY_KEY_HASH) {
+    throw new Error('POLICY_EXPIRATION_DATE or POLICY_KEY_HASH is not defined in environment variables');
+  }
+  
+  const slot = await timeToSlot(new Date(POLICY_EXPIRATION_DATE));
+  const keyHash = POLICY_KEY_HASH;
+  
+  if (!keyHash) {
+    throw new Error('POLICY_KEY_HASH is not defined in environment variables');
+  }
+  
+  const policy = await createNativeScript(keyHash, slot, true);
+  const policyId = policy.hash;
+  return { slot, keyHash, policyId };
+}
+

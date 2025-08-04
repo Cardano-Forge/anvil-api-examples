@@ -7,7 +7,7 @@ import { parseArgs } from "jsr:@std/cli/parse-args";
 
 import {
   createNativeScript,
-  dateToSlot,
+  timeToSlot,
   getKeyhash,
 } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
@@ -36,7 +36,7 @@ const customerWallet = JSON.parse(
 const policyWallet = JSON.parse(Deno.readTextFileSync(args.policyWalletPath));
 
 // Date before you can interact with the policy
-const slot = await dateToSlot(new Date(args.expireDate));
+const slot = await timeToSlot(new Date(args.expireDate));
 const keyhash = await getKeyhash(policyWallet.base_address_preprod);
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy, missing or invalid skey");

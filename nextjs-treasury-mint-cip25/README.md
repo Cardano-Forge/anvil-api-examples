@@ -86,9 +86,56 @@ This application uses a combination of frontend and backend technologies to enab
 
 Feel free to fork this repository and submit PRs for any improvements. Please follow the code quality standards and git best practices outlined in the codebase.
 
+## Common Problems
+
+### UTXO Double-Spending Error
+
+**Error Message:**
+```
+API error: 422 - BadInputsUTxO ... ValueNotConservedUTxO
+```
+
+**Problem:** When users mint multiple NFTs quickly, the application may attempt to spend the same UTXOs that were already consumed in a previous transaction. This happens because:
+
+1. Your data provider (Blockfrost in this case) or your wallet has a delay in reflecting spent UTXOs
+2. The treasury wallet's UTXO set isn't immediately updated after each transaction
+3. Multiple concurrent requests may fetch the same stale UTXO data
+
+**Immediate Solutions:**
+- Wait 10-30 seconds between mint attempts
+- Refresh the page before minting again
+- Ensure your treasury wallet has multiple UTXOs available
+
+**Production Solutions:**
+For production deployments, implement UTXO management:
+
+1. **Redis-based UTXO Tracking:**
+   ```typescript
+   // Store spent UTXOs in Redis with TTL
+   await redis.setex(`spent_utxo:${txHash}:${outputIndex}`, 300, 'true');
+   
+   // Filter out spent UTXOs when fetching
+   const availableUtxos = allUtxos.filter(async (utxo) => {
+     const isSpent = await redis.get(`spent_utxo:${utxo.tx_hash}:${utxo.output_index}`);
+     return !isSpent;
+   });
+   ```
+
+2. **Database UTXO State Management:**
+   - Track UTXO states (available/pending/spent) in your database
+   - Mark UTXOs as "pending" when building transactions
+   - Mark as "spent" when transactions are confirmed
+
+3. **UTXO Pool Management:**
+   - Maintain a pool of available UTXOs
+   - Implement UTXO selection algorithms (coin selection)
+   - Automatically refresh UTXO pool periodically
+
 ## Resources
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Cardano CIP-25 Standard](https://cips.cardano.org/cips/cip25/)
 - [Anvil API Documentation](https://docs.ada-anvil.app/)
 - [Blockfrost API Documentation](https://docs.blockfrost.io/)
+- [Cardano UTXO Model](https://docs.cardano.org/learn/eutxo-explainer)
+- [Redis Documentation](https://redis.io/docs/)

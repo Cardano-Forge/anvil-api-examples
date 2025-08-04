@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { 
-  dateToSlot,
+  timeToSlot,
   getKeyhash,
   createNativeScript,
 } from "../utils/shared.ts";
@@ -62,7 +62,7 @@ function generateUniqueNFT() {
 
 
 async function createOrLoadPolicy() {
-  const slot = await dateToSlot(new Date(EXPIRATION_DATE));
+  const slot = await timeToSlot(new Date(EXPIRATION_DATE));
   const keyHash = await getKeyhash(policyWallet.base_address_preprod);
   if (!keyHash) {
     throw new Error("Unable to get key hash for policy, missing or invalid skey");

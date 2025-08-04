@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createTransaction, submitTransaction } from '@/app/lib/anvil';
-import { createOrLoadPolicy } from '@/app/lib/policy';
+import { createTransaction, submitTransaction, createOrLoadPolicy } from '@/app/lib/anvil';
 import { getUtxos } from '@/app/lib/blockfrost';
 
 /**
