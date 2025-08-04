@@ -97,7 +97,7 @@ API error: 422 - BadInputsUTxO ... ValueNotConservedUTxO
 
 **Problem:** When users mint multiple NFTs quickly, the application may attempt to spend the same UTXOs that were already consumed in a previous transaction. This happens because:
 
-1. Blockfrost API has a delay in reflecting spent UTXOs
+1. Your data provider (Blockfrost in this case) or your wallet has a delay in reflecting spent UTXOs
 2. The treasury wallet's UTXO set isn't immediately updated after each transaction
 3. Multiple concurrent requests may fetch the same stale UTXO data
 
@@ -130,21 +130,6 @@ For production deployments, implement UTXO management:
    - Maintain a pool of available UTXOs
    - Implement UTXO selection algorithms (coin selection)
    - Automatically refresh UTXO pool periodically
-
-### Wallet Connection Issues
-
-**Error Message:**
-```
-dom:receive no data domId
-```
-
-**Solutions:**
-- Clear browser cache and reload the page
-- Disable other wallet extensions temporarily
-- Ensure wallet extension is updated to the latest version
-- Try connecting with a different supported wallet
-
-
 
 ## Resources
 

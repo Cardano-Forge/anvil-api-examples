@@ -200,7 +200,7 @@ export async function submitTransaction(transaction: { complete: string }) {
 }
 
 /**
- * Convert a date to a Cardano slot number via Anvil API
+ * Convert a DateTime to a Cardano slot number via Anvil API
  */
 export async function timeToSlot(date: Date) {
   if (!ANVIL_API_URL || !ANVIL_API_KEY) {

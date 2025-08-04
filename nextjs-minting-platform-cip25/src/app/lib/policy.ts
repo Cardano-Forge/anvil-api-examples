@@ -46,6 +46,9 @@ export async function createOrLoadPolicy() {
 
 /**
  * Create a native script for minting tokens using Anvil API
+ * 
+ * See https://dev.ada-anvil.io/guides/nft-and-ft/native-scripts
+ * This guide tells you about Native Scripts and how to format them
  */
 export async function createNativeScript(
   keyHash: string,
