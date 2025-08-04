@@ -25,7 +25,7 @@
 
 import { Buffer } from "node:buffer";
 import { FixedTransaction, PrivateKey } from "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1";
-import { createNativeScript, dateToSlot, getKeyhash } from "../utils/shared.ts";
+import { createNativeScript, timeToSlot, getKeyhash } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
 
 // 1. Load wallets
@@ -33,7 +33,7 @@ const customerWallet = JSON.parse(Deno.readTextFileSync("wallet-customer.json"))
 const policyWallet   = JSON.parse(Deno.readTextFileSync("wallet-policy.json"));
 
 // 2. Create native script (expires 2026-01-01)
-const slot = await dateToSlot(new Date("2026-01-01"));
+const slot = await timeToSlot(new Date("2026-01-01"));
 
 // 2.1. Get keyhash of policy wallet
 const keyhash = await getKeyhash(policyWallet.base_address_preprod);

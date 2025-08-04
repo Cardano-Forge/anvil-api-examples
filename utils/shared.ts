@@ -3,7 +3,7 @@ import { Buffer } from "node:buffer";
 
 import { API_URL, HEADERS } from "./constant.ts";
 
-export async function dateToSlot(date: Date) {
+export async function timeToSlot(date: Date) {
   try {
     const timeInMilliseconds = date.getTime();
     const response = await fetch(`${API_URL}/utils/network/time-to-slot`, {
@@ -19,7 +19,7 @@ export async function dateToSlot(date: Date) {
     const data = await response.json();
     return data.slot;
   } catch (error) {
-    console.error('Error in dateToSlot:', error);
+    console.error('Error in timeToSlot:', error);
     throw error;
   }
 }

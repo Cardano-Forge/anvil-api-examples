@@ -29,7 +29,7 @@ import {
   PrivateKey,
 } from "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1";
 import {
-  dateToSlot,
+  timeToSlot,
   getKeyhash,
   createNativeScript,
 } from "../utils/shared.ts";
@@ -41,7 +41,7 @@ const policyWallet = JSON.parse(Deno.readTextFileSync("wallet-policy.json"));
 const metaManagerWallet = JSON.parse(Deno.readTextFileSync("wallet-meta-manager.json"));
 
 // 2. Create native script (expires 2026-01-01 signed by policy wallet)
-const slot = await dateToSlot(new Date("2026-01-01"));
+const slot = await timeToSlot(new Date("2026-01-01"));
 
 // 2.1. Get keyhash of policy wallet
 const keyhash = await getKeyhash(policyWallet.base_address_preprod);

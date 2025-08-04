@@ -26,7 +26,7 @@ import {
 } from "npm:@emurgo/cardano-serialization-lib-nodejs@14.1.1";
 import {
   createNativeScript,
-  dateToSlot,
+  timeToSlot,
   getKeyhash,
 } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
@@ -45,7 +45,7 @@ const assetName = "000643b0616e76696c61706963697036385f3137353237303239393937383
 // The native script is needed to be pre-loaded for the API to validate the transaction.
 // In a real-world scenario, you might just have the policy ID if it's already on-chain.
 const expirationDate = "2026-01-01";
-const slot = await dateToSlot(new Date(expirationDate));
+const slot = await timeToSlot(new Date(expirationDate));
 const keyhash = await getKeyhash(policyWallet.base_address_preprod);
 if (!keyhash) {
   throw new Error("Unable to get key hash for policy wallet.");

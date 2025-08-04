@@ -5,7 +5,8 @@ import { cors } from "hono/cors";
 import { createClient } from "redis";
 import { 
   createNativeScript,
-  dateToSlot,
+  getKeyhash,
+  timeToSlot,
 } from "../utils/shared.ts";
 import {
   FixedTransaction,
@@ -55,7 +56,7 @@ function generateUniqueNFT() {
 }
 
 async function createOrLoadPolicy() {
-  const slot = await dateToSlot(new Date(EXPIRATION_DATE));
+  const slot = await timeToSlot(new Date(EXPIRATION_DATE));
   const keyHash = await getKeyhash(policyWallet.base_address_preprod);
   if (!keyHash) {
     throw new Error("Unable to get key hash for policy, missing or invalid skey");
