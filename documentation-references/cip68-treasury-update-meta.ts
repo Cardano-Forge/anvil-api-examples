@@ -15,8 +15,8 @@
  * 7. Submitting the fully signed transaction to the blockchain.
  *
  * Required files: wallet-treasury.json, wallet-policy.json, wallet-meta-manager.json
- * Required environment variables: BLOCKFROST_PROJECT_ID, ANVIL_API_KEY
- * Prerequisite: deno run --allow-all --env-file=.env cip68-treasury-update-meta.ts
+ * Required environment variables: ANVIL_API_KEY (set in utils/constant.ts)
+ * Run: deno run --allow-all --env-file=.env cip68-treasury-update-meta.ts
  */
 
 import { Buffer } from "node:buffer";
@@ -30,7 +30,6 @@ import {
   getKeyhash,
 } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
-import { getUtxos } from "../fetch-utxos-from-the-backend/utxos/blockfrost.ts";
 
 // 1. Load wallets
 const treasuryWallet = JSON.parse(Deno.readTextFileSync("wallet-treasury.json"));
@@ -40,11 +39,11 @@ const metaManagerWallet = JSON.parse(Deno.readTextFileSync("wallet-meta-manager.
 // 2. Define Asset and Policy Details
 // This is the hex-encoded asset name (policyID + assetName) of the CIP-68 token pair.
 // The API will automatically find the reference (100) token to update.
-const assetName = "000643b0616e76696c61706963697036385f31373532373032393939373838";
+const assetName = "000643b0616e76696c61706963697036385f31373637373233323037383235";
 
 // The native script is needed to be pre-loaded for the API to validate the transaction.
 // In a real-world scenario, you might just have the policy ID if it's already on-chain.
-const expirationDate = "2026-01-01";
+const expirationDate = "2027-01-01";
 const slot = await timeToSlot(new Date(expirationDate));
 const keyhash = await getKeyhash(policyWallet.base_address_preprod);
 if (!keyhash) {
@@ -52,16 +51,15 @@ if (!keyhash) {
 }
 const nativeScript = await createNativeScript(keyhash, slot);
 
-// 3. Fetch Treasury UTXOs
-const BLOCKFROST_PROJECT_ID = Deno.env.get("BLOCKFROST_PROJECT_ID");
-if (!BLOCKFROST_PROJECT_ID) {
-  throw new Error("Missing BLOCKFROST_PROJECT_ID env var");
-}
-const utxos = await getUtxos(
-  "https://cardano-preprod.blockfrost.io/api/v0",
-  BLOCKFROST_PROJECT_ID,
-  treasuryWallet.base_address_preprod,
+// 3. Fetch Treasury UTXOs using Anvil API
+const utxosResponse = await fetch(
+  `${API_URL}/wallets/utxos?address=${treasuryWallet.base_address_preprod}`,
+  { headers: HEADERS }
 );
+if (!utxosResponse.ok) {
+  throw new Error(`Failed to fetch UTXOs: ${await utxosResponse.text()}`);
+}
+const utxos: string[] = await utxosResponse.json();
 console.log(`Found ${utxos.length} UTXOs in treasury wallet.`);
 
 // 4. Build the transaction payload

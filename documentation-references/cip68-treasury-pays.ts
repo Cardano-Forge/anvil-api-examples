@@ -13,8 +13,8 @@
  * 6. Signing the transaction with both the treasury and metadata manager private keys.
  * 7. Submitting the transaction to the Anvil API.
  *
- * Required environment variables: BLOCKFROST_PROJECT_ID, ANVIL_API_KEY
- * Prerequisite: deno run --allow-all --env-file=.env cip68-treasury-pays.ts
+ * Required environment variables: ANVIL_API_KEY (set in utils/constant.ts)
+ * Run: deno run --allow-all --env-file=.env cip68-treasury-pays.ts
  */
 
 import { Buffer } from "node:buffer";
@@ -28,7 +28,6 @@ import {
   createNativeScript,
 } from "../utils/shared.ts";
 import { API_URL, HEADERS } from "../utils/constant.ts";
-import { getUtxos } from "../fetch-utxos-from-the-backend/utxos/blockfrost.ts";
 
 // 1. Load wallets
 const customerWallet = JSON.parse(Deno.readTextFileSync("wallet-customer.json"));
@@ -36,9 +35,9 @@ const treasuryWallet = JSON.parse(Deno.readTextFileSync("wallet-treasury.json"))
 const policyWallet = JSON.parse(Deno.readTextFileSync("wallet-policy.json"));
 const metaManagerWallet = JSON.parse(Deno.readTextFileSync("wallet-meta-manager.json"));
 
-// 2. Create native script (expires 2026-01-01, signed by policy wallet)
+// 2. Create native script (expires 2027-01-01, signed by policy wallet)
 const counter = new Date().getTime();
-const slot = await timeToSlot(new Date("2026-01-01"));
+const slot = await timeToSlot(new Date("2027-01-01"));
 const keyhash = await getKeyhash(policyWallet.base_address_preprod);
 
 if (!keyhash) {
@@ -72,16 +71,15 @@ const assets = [
   },
 ];
 
-// 4. Get UTXOs from the treasury wallet
-const BLOCKFROST_PROJECT_ID = Deno.env.get("BLOCKFROST_PROJECT_ID");
-if (!BLOCKFROST_PROJECT_ID) {
-  throw new Error("Missing BLOCKFROST_PROJECT_ID env var");
-}
-const utxos = await getUtxos(
-  "https://cardano-preprod.blockfrost.io/api/v0",
-  BLOCKFROST_PROJECT_ID,
-  treasuryWallet.base_address_preprod,
+// 4. Get UTXOs from the treasury wallet using Anvil API
+const utxosResponse = await fetch(
+  `${API_URL}/wallets/utxos?address=${treasuryWallet.base_address_preprod}`,
+  { headers: HEADERS }
 );
+if (!utxosResponse.ok) {
+  throw new Error(`Failed to fetch UTXOs: ${await utxosResponse.text()}`);
+}
+const utxos: string[] = await utxosResponse.json();
 console.log(`Found ${utxos.length} UTXOs in treasury wallet.`);
 
 // 5. Build the transaction payload
