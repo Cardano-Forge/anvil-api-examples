@@ -1,0 +1,7 @@
+node_modules/
+# written by the recipes: wallets hold signing keys
+wallet*.json
+policy.json
+cip68.json
+lock.json
+plutus.json
