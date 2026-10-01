@@ -1,0 +1,19 @@
+{
+  "name": "anvil-api-recipes",
+  "description": "Runnable recipes for the Anvil API (https://dev.ada-anvil.io/recipes)",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "check": "tsc"
+  },
+  "dependencies": {
+    "@emurgo/cardano-serialization-lib-nodejs": "14.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.8.0"
+  }
+}
